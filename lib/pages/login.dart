@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'home.dart'; // <-- your existing home page
+// <-- your existing home page
 
 class LoginPage extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
@@ -26,15 +26,12 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     final token = _tokenController.text.trim();
-
     try {
-      final response = await http.get(
-        Uri.parse("https://api.exaroton.com/v1/account"),
-        headers: {
-          "Authorization": "Bearer $token",
-        },
-      );
-
+        var url = Uri.https("api.exaroton.com", "v1/accounts");
+        final response = await http.get(url, headers: {
+            "Authorization": "Bearer $token",
+          });
+        print(response.body.toString());
       if (response.statusCode == 200) {
         // Save token securely
         await _storage.write(key: "api_token", value: token);
@@ -45,12 +42,12 @@ class _LoginPageState extends State<LoginPage> {
         }
       } else {
         setState(() {
-          _error = "Invalid API Token";
+          _error = "Error ${response.statusCode}: ${response.body}";
         });
       }
     } catch (e) {
       setState(() {
-        _error = "Network error";
+        _error = e.toString();
       });
     }
 
