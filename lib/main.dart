@@ -1,3 +1,4 @@
+import 'package:exaton/extra/AuthStorage.dart';
 import 'package:exaton/pages/home.dart';
 import 'package:exaton/pages/login.dart';
 import 'package:flutter/material.dart';
@@ -191,7 +192,7 @@ class MainAppPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Account Name',
+                            '',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600
@@ -210,7 +211,7 @@ class MainAppPage extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          await storage.delete(key: 'api_token');
+                          await AuthStorage.clear();
                           onLogout();
                         },
                         child: Container(

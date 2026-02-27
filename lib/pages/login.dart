@@ -1,11 +1,10 @@
+import 'package:exaton/exaroton/src/apis/accounts.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// <-- your existing home page
-
+import 'package:exaton/extra/AuthStorage.dart';
 class LoginPage extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
-  
+
   const LoginPage({super.key, this.onLoginSuccess});
 
   @override
@@ -27,14 +26,10 @@ class _LoginPageState extends State<LoginPage> {
 
     final token = _tokenController.text.trim();
     try {
-        var url = Uri.https("api.exaroton.com", "v1/accounts");
-        final response = await http.get(url, headers: {
-            "Authorization": "Bearer $token",
-          });
-        print(response.body.toString());
+      var response = await GetAccount(token: token).fetch();
       if (response.statusCode == 200) {
         // Save token securely
-        await _storage.write(key: "api_token", value: token);
+        await AuthStorage.saveToken(token);
 
         // Call the callback to refresh auth state
         if (mounted && widget.onLoginSuccess != null) {
@@ -42,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       } else {
         setState(() {
-          _error = "Error ${response.statusCode}: ${response.body}";
+          _error = "Invalid API Key";
         });
       }
     } catch (e) {
@@ -91,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                     _error!,
                     style: const TextStyle(color: Colors.red),
                   ),
-                )
+                ),
             ],
           ),
         ),
