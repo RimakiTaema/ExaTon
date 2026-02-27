@@ -53,7 +53,7 @@ jobs:
           name: linux-build
           path: linux-build.zip
 
-  # Job 2: Build Windows
+# Job 2: Build Windows (Windows)
   build-windows:
     runs-on: windows-latest
 
@@ -77,7 +77,7 @@ jobs:
 
       - name: Zip Windows build
         run: |
-          Compress-Archive -Path build/windows/runner/Release/* -DestinationPath windows-build.zip
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath windows-build.zip
         shell: pwsh
 
       - name: Upload Windows Artifact
@@ -85,7 +85,7 @@ jobs:
         with:
           name: windows-build
           path: windows-build.zip
-
+          
   # Job 3: Create Release
   release:
     runs-on: ubuntu-latest
