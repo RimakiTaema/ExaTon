@@ -2,25 +2,10 @@ import 'package:exaton/extra/AuthStorage.dart';
 import 'package:exaton/pages/home.dart';
 import 'package:exaton/pages/login.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-const storage = FlutterSecureStorage();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
-}
-
-Future<bool> _checkToken() async {
-  try {
-    String? token = await storage.read(key: 'api_token');
-    if (token == null || token.isEmpty) {
-      return false;
-    }
-    return true;
-  } catch (e) {
-    return false;
-  }
 }
 
 class MyApp extends StatefulWidget {
@@ -192,7 +177,7 @@ class MainAppPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '',
+                            'Placeholder',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600
@@ -200,7 +185,7 @@ class MainAppPage extends StatelessWidget {
                             textAlign: TextAlign.start,
                           ),
                           Text(
-                            'Credits: ' '150',
+                            'Credits: ' 'Nill',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w400
