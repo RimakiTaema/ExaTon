@@ -1,20 +1,18 @@
+name: Flutter Multi-Platform CI/CD
+
 on:
   push:
     branches:
       - main
 
 jobs:
-  build:
+  # Job 1: Build Android & Linux (Ubuntu)
+  build-linux-android:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Generate timestamp
-        run: echo "BUILD_TIME=$(date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_ENV
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -32,35 +30,95 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # Build Android
       - name: Build Android APK
         run: flutter build apk --release
 
-      # Build Linux
       - name: Build Linux Desktop
         run: flutter build linux --release
 
-      # Zip Linux build
       - name: Zip Linux build
         run: |
           cd build/linux/x64/release/bundle
-          zip -r linux-build.zip .
-          mv linux-build.zip ../../../../../
+          zip -r ../../../linux-build.zip .
 
-      # Upload to Actions Artifacts
-      - name: Upload APK Artifact
+      - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ env.BUILD_TIME }}
+          name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-build-${{ env.BUILD_TIME }}
+          name: linux-build
           path: linux-build.zip
 
-      # Create GitHub Pre-Release
+  # Job 2: Build Windows
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows Desktop
+        run: flutter build windows --release
+
+      - name: Zip Windows build
+        run: |
+          Compress-Archive -Path build/windows/runner/Release/* -DestinationPath windows-build.zip
+        shell: pwsh
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: windows-build.zip
+
+  # Job 3: Create Release
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-linux-android, build-windows]
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate timestamp
+        run: echo "BUILD_TIME=$(date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_ENV
+
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: ./artifacts
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+          path: ./artifacts
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: ./artifacts
+
       - name: Create Pre-release
         uses: softprops/action-gh-release@v2
         with:
@@ -68,7 +126,8 @@ jobs:
           name: Build ${{ env.BUILD_TIME }}
           prerelease: true
           files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            linux-build.zip
+            ./artifacts/app-release.apk
+            ./artifacts/linux-build.zip
+            ./artifacts/windows-build.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
