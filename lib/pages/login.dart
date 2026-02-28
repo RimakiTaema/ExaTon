@@ -1,7 +1,7 @@
 import 'package:exaton/exaroton/src/apis/accounts.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:exaton/extra/AuthStorage.dart';
+
 class LoginPage extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
 
@@ -13,7 +13,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _tokenController = TextEditingController();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   bool _loading = false;
   String? _error;
@@ -60,6 +59,11 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Text(
+                "RimaTon",
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight(600)),
+              ),
+              const SizedBox(height: 60),
               const Text(
                 "Login with Exaroton Token",
                 style: TextStyle(fontSize: 22),
