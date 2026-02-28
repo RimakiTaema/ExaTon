@@ -1,6 +1,16 @@
 # ExaTon
 The Exaroton Client For Easier Basic Server Controls
 
+## Downloads
+**Mobile Platform**
+
+[![Nightly](https://img.shields.io/badge/Nightly-Android-e4ccff?style=flat)](https://nightly.link/RimakiTaema/ExaTon/workflows/buildci/main/android-build.zip)
+
+**Desktop Platform**
+
+[![Nightly](https://img.shields.io/badge/Nightly-Linux-6c63ff?style=flat)](https://nightly.link/RimakiTaema/ExaTon/workflows/buildci/main/linux-build.zip)
+[![Nightly](https://img.shields.io/badge/Nightly-Windows-6c63ff?style=flat)](https://nightly.link/RimakiTaema/ExaTon/workflows/buildci/main/windows-build.zip)
+
 ## Features
 - [x] Login From API Token
 - [ ] Multiple Account Support
