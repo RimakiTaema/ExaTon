@@ -24,6 +24,17 @@ class _MyAppState extends State<MyApp> {
     _tokenFuture = _checkToken();
   }
 
+  Future<bool> _checkToken() async {
+  try {
+    final token = await AuthStorage.getToken();
+    return token != null && token.isNotEmpty;
+    } catch (e) {
+    print('❌ Token check failed: $e');
+    return false;
+    }
+  }
+
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
