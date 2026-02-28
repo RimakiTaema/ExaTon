@@ -2,6 +2,9 @@
 The Exaroton Client For Easier Basic Server Controls
 
 ## Downloads
+[**Github Releases**](https://github.com/RimakiTaema/ExaTon/releases/latest)
+<br>
+
 **Mobile Platform**
 
 [![Nightly](https://img.shields.io/badge/Nightly-Android-e4ccff?style=flat)](https://nightly.link/RimakiTaema/ExaTon/workflows/buildci/main/android-build.zip)
