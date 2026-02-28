@@ -13,6 +13,12 @@ class AuthStorage {
     return await _storage.read(key: "api_token");
   }
 
+  // Inside AuthStorage class
+  static Future<bool> hasValidToken() async {
+    final token = await getToken();
+    return token != null && token.isNotEmpty;
+  }
+  
   // Save username
   static Future<void> saveUsername(String username) async {
     await _storage.write(key: "username", value: username);
