@@ -10,7 +10,27 @@ The Exaroton Client For Easier Basic Server Controls
 - [ ] And More...
 
 ## 🛑 Before You Continue
-Currently Build Was Not Working In Some Platforms Especially Mobile Platform (Cause By URI Error)
-And If you got API Token
-Don't Share **Treat Like Password** As If someone got that key 
-Hacker Can add OP/Whitelist To Themself Or Even modify motd and Plans
+
+⚠️ **Current Build Status**  
+The build is currently not working on some platforms — especially **mobile platforms** — due to a URI-related error.
+
+Please keep this in mind before reporting issues.
+
+---
+
+🔐 **API Token Security**
+
+If you have an API token:
+
+- **Do NOT share it**
+- Treat it like a password
+- Keep it private and secure
+
+If someone gains access to your token, they could:
+
+- Add OP or whitelist themselves  
+- Modify the MOTD  
+- Change server plans  
+- Perform other unauthorized actions  
+
+Protect your token at all times.
