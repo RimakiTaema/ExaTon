@@ -1,8 +1,8 @@
-# openapi.api.ServerPlayersApi
+# openapi_client.api.ServerPlayersApi
 
 ## Load the API package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 All URIs are relative to *https://api.exaroton.com/v1*
@@ -22,17 +22,23 @@ Remove entries from player list
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerPlayersApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String list = list_example; // String | Player list name
-final DeletePlayerListRequestBody deletePlayerListRequestBody = ; // DeletePlayerListRequestBody | 
+final api_instance = ServerPlayersApi();
+final serverId = serverId_example; // String | Unique server ID
+final list = list_example; // String | Player list name
+final deletePlayerListRequestBody = DeletePlayerListRequestBody(); // DeletePlayerListRequestBody | 
 
 try {
-    final response = api.deletePlayerList(serverId, list, deletePlayerListRequestBody);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.deletePlayerList(serverId, list, deletePlayerListRequestBody);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerPlayersApi->deletePlayerList: $e\n');
 }
 ```
@@ -67,16 +73,22 @@ Get player list contents
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerPlayersApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String list = list_example; // String | Player list name
+final api_instance = ServerPlayersApi();
+final serverId = serverId_example; // String | Unique server ID
+final list = list_example; // String | Player list name
 
 try {
-    final response = api.getPlayerList(serverId, list);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getPlayerList(serverId, list);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerPlayersApi->getPlayerList: $e\n');
 }
 ```
@@ -112,15 +124,21 @@ A player list is a list of players such as the whitelist, ops or bans. Player li
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerPlayersApi();
-final String serverId = serverId_example; // String | Unique server ID
+final api_instance = ServerPlayersApi();
+final serverId = serverId_example; // String | Unique server ID
 
 try {
-    final response = api.getPlayerLists(serverId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getPlayerLists(serverId);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerPlayersApi->getPlayerLists: $e\n');
 }
 ```
@@ -153,17 +171,23 @@ Add entries to player list
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerPlayersApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String list = list_example; // String | Player list name
-final PutPlayerListRequestBody putPlayerListRequestBody = ; // PutPlayerListRequestBody | 
+final api_instance = ServerPlayersApi();
+final serverId = serverId_example; // String | Unique server ID
+final list = list_example; // String | Player list name
+final putPlayerListRequestBody = PutPlayerListRequestBody(); // PutPlayerListRequestBody | 
 
 try {
-    final response = api.putPlayerList(serverId, list, putPlayerListRequestBody);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.putPlayerList(serverId, list, putPlayerListRequestBody);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerPlayersApi->putPlayerList: $e\n');
 }
 ```

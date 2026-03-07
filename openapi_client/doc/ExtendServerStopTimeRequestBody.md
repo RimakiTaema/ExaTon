@@ -1,8 +1,8 @@
-# openapi.model.ExtendServerStopTimeRequestBody
+# openapi_client.model.ExtendServerStopTimeRequestBody
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties

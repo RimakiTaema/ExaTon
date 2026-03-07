@@ -1,8 +1,8 @@
-# openapi.api.ServerActionsApi
+# openapi_client.api.ServerActionsApi
 
 ## Load the API package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 All URIs are relative to *https://api.exaroton.com/v1*
@@ -24,16 +24,22 @@ Extend server stop timer
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerActionsApi();
-final String serverId = serverId_example; // String | Unique server ID
-final ExtendServerStopTimeRequestBody extendServerStopTimeRequestBody = ; // ExtendServerStopTimeRequestBody | 
+final api_instance = ServerActionsApi();
+final serverId = serverId_example; // String | Unique server ID
+final extendServerStopTimeRequestBody = ExtendServerStopTimeRequestBody(); // ExtendServerStopTimeRequestBody | 
 
 try {
-    final response = api.extendServerStopTime(serverId, extendServerStopTimeRequestBody);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.extendServerStopTime(serverId, extendServerStopTimeRequestBody);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerActionsApi->extendServerStopTime: $e\n');
 }
 ```
@@ -67,15 +73,21 @@ Start a server
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerActionsApi();
-final String serverId = serverId_example; // String | Unique server ID
+final api_instance = ServerActionsApi();
+final serverId = serverId_example; // String | Unique server ID
 
 try {
-    final response = api.getStartServer(serverId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getStartServer(serverId);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerActionsApi->getStartServer: $e\n');
 }
 ```
@@ -108,16 +120,22 @@ Execute a server command
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerActionsApi();
-final String serverId = serverId_example; // String | Unique server ID
-final PostServerCommandRequestBody postServerCommandRequestBody = ; // PostServerCommandRequestBody | 
+final api_instance = ServerActionsApi();
+final serverId = serverId_example; // String | Unique server ID
+final postServerCommandRequestBody = PostServerCommandRequestBody(); // PostServerCommandRequestBody | 
 
 try {
-    final response = api.postServerCommand(serverId, postServerCommandRequestBody);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.postServerCommand(serverId, postServerCommandRequestBody);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerActionsApi->postServerCommand: $e\n');
 }
 ```
@@ -151,16 +169,22 @@ Start a server with own credits
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerActionsApi();
-final String serverId = serverId_example; // String | Unique server ID
-final PostStartServerRequest postStartServerRequest = ; // PostStartServerRequest | 
+final api_instance = ServerActionsApi();
+final serverId = serverId_example; // String | Unique server ID
+final postStartServerRequest = PostStartServerRequest(); // PostStartServerRequest | 
 
 try {
-    final response = api.postStartServer(serverId, postStartServerRequest);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.postStartServer(serverId, postStartServerRequest);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerActionsApi->postStartServer: $e\n');
 }
 ```
@@ -194,15 +218,21 @@ Restart a server
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerActionsApi();
-final String serverId = serverId_example; // String | Unique server ID
+final api_instance = ServerActionsApi();
+final serverId = serverId_example; // String | Unique server ID
 
 try {
-    final response = api.restartServer(serverId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.restartServer(serverId);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerActionsApi->restartServer: $e\n');
 }
 ```
@@ -235,15 +265,21 @@ Stop a server
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerActionsApi();
-final String serverId = serverId_example; // String | Unique server ID
+final api_instance = ServerActionsApi();
+final serverId = serverId_example; // String | Unique server ID
 
 try {
-    final response = api.stopServer(serverId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.stopServer(serverId);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerActionsApi->stopServer: $e\n');
 }
 ```

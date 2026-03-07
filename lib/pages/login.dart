@@ -26,11 +26,11 @@ class _LoginPageState extends State<LoginPage> {
     final token = _tokenController.text.trim();
     try {
       var response = await GetAccount(token: token).run();
-      if (response.statusCode == 200) {
+      if (response.success == true) {
         // Save token securely
         await AuthStorage.saveToken(token);
 
-        final name = response.data?.data?.name ?? "Unknown";
+        final name = response.data?.name ?? "Unknown";
 
         await AuthStorage.saveUsername(name);
 
@@ -38,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted && widget.onLoginSuccess != null) {
           widget.onLoginSuccess!();
         }
-      } else {
+      } else if (response.error == "Unauthorized") {
         setState(() {
           _error = "Invalid API Key";
         });

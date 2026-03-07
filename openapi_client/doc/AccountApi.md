@@ -1,8 +1,8 @@
-# openapi.api.AccountApi
+# openapi_client.api.AccountApi
 
 ## Load the API package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 All URIs are relative to *https://api.exaroton.com/v1*
@@ -19,14 +19,20 @@ Get account info
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getAccountApi();
+final api_instance = AccountApi();
 
 try {
-    final response = api.getAccount();
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getAccount();
+    print(result);
+} catch (e) {
     print('Exception when calling AccountApi->getAccount: $e\n');
 }
 ```

@@ -1,8 +1,8 @@
-# openapi.model.PostServerRamRequest
+# openapi_client.model.PostServerRamRequest
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties

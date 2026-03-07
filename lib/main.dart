@@ -1,8 +1,16 @@
+import 'package:exaton/exaroton/src/apis/accounts.dart';
 import 'package:exaton/extra/AuthStorage.dart';
 import 'package:exaton/pages/home.dart';
 import 'package:exaton/pages/login.dart';
 import 'package:flutter/material.dart';
-// THIS BUILD IS NOT WORKING
+
+Future<double?> fetchCredits() async {
+  final token = await AuthStorage.getToken();
+  if (token == null || token.isEmpty) return null;
+  final response = await GetAccount(token: token).run();
+  return response.data?.credits;
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
@@ -17,6 +25,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late Future<bool> _tokenFuture;
+  ThemeMode _themeMode = ThemeMode.light;
 
   @override
   void initState() {
@@ -34,14 +43,35 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  
+  Future<void> _logout(BuildContext context) async {
+    await AuthStorage.clear();
+    setState(() {
+      _tokenFuture = _checkToken();
+    });
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LoginPage(onLoginSuccess: _refreshAuth),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Exaton",
       theme: ThemeData(
         useMaterial3: true,
+        brightness: Brightness.light,
+        colorSchemeSeed: Colors.green,
       ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorSchemeSeed: Colors.green,
+      ),
+      themeMode: _themeMode,
       debugShowCheckedModeBanner: false,
       home: FutureBuilder<bool>(
         future: _tokenFuture,
@@ -53,7 +83,19 @@ class _MyAppState extends State<MyApp> {
           }
           
           if (snapshot.data == true) {
-            return MainAppPage(onLogout: _refreshAuth);
+            return MainAppPage(
+              onLogout: () {
+                _logout(context);
+              },
+              isDarkMode: _themeMode == ThemeMode.dark,
+              onToggleTheme: () {
+                setState(() {
+                  _themeMode = _themeMode == ThemeMode.dark
+                      ? ThemeMode.light
+                      : ThemeMode.dark;
+                });
+              },
+            );
           } else {
             return LoginPage(onLoginSuccess: _refreshAuth);
           }
@@ -71,11 +113,19 @@ class _MyAppState extends State<MyApp> {
 
 class MainAppPage extends StatelessWidget {
   final VoidCallback onLogout;
+  final VoidCallback onToggleTheme;
+  final bool isDarkMode;
   
-  const MainAppPage({super.key, required this.onLogout});
+  const MainAppPage({
+    super.key,
+    required this.onLogout,
+    required this.onToggleTheme,
+    required this.isDarkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -86,18 +136,15 @@ class MainAppPage extends StatelessWidget {
             fontWeight: FontWeight.bold
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: scheme.surface,
         elevation: 0.0,
         centerTitle: true,
         actions: [
-          Container(
-            margin: EdgeInsets.all(10),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Color(0xffF7F8F8)
-            ),
-            child: Icon(Icons.dark_mode),
-          )
+          IconButton(
+            onPressed: onToggleTheme,
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            tooltip: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+          ),
         ],
       ),
       body: HomePage(),
@@ -187,29 +234,41 @@ class MainAppPage extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Placeholder',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600
-                            ),
-                            textAlign: TextAlign.start,
+                          FutureBuilder<String?>(
+                            future: AuthStorage.getUsername(),
+                            builder: (context, snapshot) {
+                              final name = snapshot.data ?? 'Placeholder';
+                              return Text(
+                                name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textAlign: TextAlign.start,
+                              );
+                            },
                           ),
-                          Text(
-                            'Credits: ' 'Nill',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400
-                            ),
-                            textAlign: TextAlign.start,
-                          )
+                          FutureBuilder<double?>(
+                            future: fetchCredits(),
+                            builder: (context, snapshot) {
+                              final credits = snapshot.data;
+                              final text = credits != null
+                                  ? 'Credits: $credits'
+                                  : 'Credits: Nill';
+                              return Text(
+                                text,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                textAlign: TextAlign.start,
+                              );
+                            },
+                          ),
                         ],
                       ),
                       GestureDetector(
-                        onTap: () async {
-                          await AuthStorage.clear();
-                          onLogout();
-                        },
+                        onTap: onLogout,
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
@@ -217,7 +276,7 @@ class MainAppPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Icon(
-                            Icons.logout
+                            Icons.logout,
                           )
                         ),
                       ),

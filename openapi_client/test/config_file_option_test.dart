@@ -1,12 +1,21 @@
+//
+// AUTO-GENERATED FILE, DO NOT MODIFY!
+//
+// @dart=2.18
+
+// ignore_for_file: unused_element, unused_import
+// ignore_for_file: always_put_required_named_parameters_first
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: lines_longer_than_80_chars
+
+import 'package:openapi_client/api.dart';
 import 'package:test/test.dart';
-import 'package:openapi/openapi.dart';
 
 // tests for ConfigFileOption
 void main() {
-  final instance = ConfigFileOptionBuilder();
-  // TODO add properties to the builder and call build()
+  // final instance = ConfigFileOption();
 
-  group(ConfigFileOption, () {
+  group('test ConfigFileOption', () {
     // String key
     test('to test the property `key`', () async {
       // TODO
@@ -27,10 +36,12 @@ void main() {
       // TODO
     });
 
-    // BuiltList<String> options
+    // List<String> options (default value: const [])
     test('to test the property `options`', () async {
       // TODO
     });
 
+
   });
+
 }

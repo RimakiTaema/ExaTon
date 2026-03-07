@@ -1,8 +1,8 @@
-# openapi.api.ServerOptionsApi
+# openapi_client.api.ServerOptionsApi
 
 ## Load the API package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 All URIs are relative to *https://api.exaroton.com/v1*
@@ -22,15 +22,21 @@ Get server MOTD
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerOptionsApi();
-final String serverId = serverId_example; // String | Unique server ID
+final api_instance = ServerOptionsApi();
+final serverId = serverId_example; // String | Unique server ID
 
 try {
-    final response = api.getServerMotd(serverId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getServerMotd(serverId);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerOptionsApi->getServerMotd: $e\n');
 }
 ```
@@ -63,15 +69,21 @@ Get server ram
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerOptionsApi();
-final String serverId = serverId_example; // String | Unique server ID
+final api_instance = ServerOptionsApi();
+final serverId = serverId_example; // String | Unique server ID
 
 try {
-    final response = api.getServerRam(serverId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getServerRam(serverId);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerOptionsApi->getServerRam: $e\n');
 }
 ```
@@ -104,16 +116,22 @@ Change server MOTD
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerOptionsApi();
-final String serverId = serverId_example; // String | Unique server ID
-final PostServerMotdRequest postServerMotdRequest = ; // PostServerMotdRequest | 
+final api_instance = ServerOptionsApi();
+final serverId = serverId_example; // String | Unique server ID
+final postServerMotdRequest = PostServerMotdRequest(); // PostServerMotdRequest | 
 
 try {
-    final response = api.postServerMotd(serverId, postServerMotdRequest);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.postServerMotd(serverId, postServerMotdRequest);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerOptionsApi->postServerMotd: $e\n');
 }
 ```
@@ -147,16 +165,22 @@ Change server ram
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerOptionsApi();
-final String serverId = serverId_example; // String | Unique server ID
-final PostServerRamRequest postServerRamRequest = ; // PostServerRamRequest | 
+final api_instance = ServerOptionsApi();
+final serverId = serverId_example; // String | Unique server ID
+final postServerRamRequest = PostServerRamRequest(); // PostServerRamRequest | 
 
 try {
-    final response = api.postServerRam(serverId, postServerRamRequest);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.postServerRam(serverId, postServerRamRequest);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerOptionsApi->postServerRam: $e\n');
 }
 ```

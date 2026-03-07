@@ -1,8 +1,8 @@
-# openapi.model.ShareServerLog200ResponseData
+# openapi_client.model.ShareServerLog200ResponseData
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties

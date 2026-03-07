@@ -1,8 +1,8 @@
-# openapi.api.ServersApi
+# openapi_client.api.ServersApi
 
 ## Load the API package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 All URIs are relative to *https://api.exaroton.com/v1*
@@ -20,15 +20,21 @@ Get a server
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServersApi();
-final String serverId = serverId_example; // String | Unique server ID
+final api_instance = ServersApi();
+final serverId = serverId_example; // String | Unique server ID
 
 try {
-    final response = api.getServer(serverId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getServer(serverId);
+    print(result);
+} catch (e) {
     print('Exception when calling ServersApi->getServer: $e\n');
 }
 ```
@@ -61,14 +67,20 @@ Get all servers
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServersApi();
+final api_instance = ServersApi();
 
 try {
-    final response = api.getServers();
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getServers();
+    print(result);
+} catch (e) {
     print('Exception when calling ServersApi->getServers: $e\n');
 }
 ```

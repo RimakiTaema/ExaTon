@@ -1,8 +1,8 @@
-# openapi.model.PostServerMotdRequest
+# openapi_client.model.PostServerMotdRequest
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties

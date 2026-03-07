@@ -1,8 +1,8 @@
-# openapi.model.GetStartServer200Response
+# openapi_client.model.GetStartServer200Response
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties
@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **success** | **bool** |  | [optional] 
 **error** | **String** |  | [optional] 
-**data** | [**JsonObject**](.md) |  | [optional] 
+**data** | [**Object**](.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

@@ -1,8 +1,8 @@
-# openapi.model.GetServerMotd200ResponseData
+# openapi_client.model.GetServerMotd200ResponseData
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties

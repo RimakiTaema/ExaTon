@@ -1,8 +1,8 @@
-# openapi.model.FileInfo
+# openapi_client.model.FileInfo
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties
@@ -17,7 +17,7 @@ Name | Type | Description | Notes
 **isReadable** | **bool** |  | [optional] 
 **isWritable** | **bool** |  | [optional] 
 **size** | **int** |  | [optional] 
-**children** | [**BuiltList&lt;FileInfo&gt;**](FileInfo.md) |  | [optional] 
+**children** | [**List<FileInfo>**](FileInfo.md) |  | [optional] [default to const []]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

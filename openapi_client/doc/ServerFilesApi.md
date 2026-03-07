@@ -1,8 +1,8 @@
-# openapi.api.ServerFilesApi
+# openapi_client.api.ServerFilesApi
 
 ## Load the API package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 All URIs are relative to *https://api.exaroton.com/v1*
@@ -24,16 +24,22 @@ Delete a file or directory
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerFilesApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String path = path_example; // String | File path
+final api_instance = ServerFilesApi();
+final serverId = serverId_example; // String | Unique server ID
+final path = path_example; // String | File path
 
 try {
-    final response = api.deleteFile(serverId, path);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.deleteFile(serverId, path);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerFilesApi->deleteFile: $e\n');
 }
 ```
@@ -67,16 +73,22 @@ Get config file data
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerFilesApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String path = path_example; // String | File path
+final api_instance = ServerFilesApi();
+final serverId = serverId_example; // String | Unique server ID
+final path = path_example; // String | File path
 
 try {
-    final response = api.getConfigFileData(serverId, path);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getConfigFileData(serverId, path);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerFilesApi->getConfigFileData: $e\n');
 }
 ```
@@ -104,22 +116,28 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getFileContent**
-> Uint8List getFileContent(serverId, path)
+> MultipartFile getFileContent(serverId, path)
 
 Get file content
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerFilesApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String path = path_example; // String | File path
+final api_instance = ServerFilesApi();
+final serverId = serverId_example; // String | Unique server ID
+final path = path_example; // String | File path
 
 try {
-    final response = api.getFileContent(serverId, path);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getFileContent(serverId, path);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerFilesApi->getFileContent: $e\n');
 }
 ```
@@ -133,7 +151,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Uint8List**](Uint8List.md)
+[**MultipartFile**](MultipartFile.md)
 
 ### Authorization
 
@@ -153,16 +171,22 @@ Get file info
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerFilesApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String path = path_example; // String | File path
+final api_instance = ServerFilesApi();
+final serverId = serverId_example; // String | Unique server ID
+final path = path_example; // String | File path
 
 try {
-    final response = api.getFileInfo(serverId, path);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getFileInfo(serverId, path);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerFilesApi->getFileInfo: $e\n');
 }
 ```
@@ -196,17 +220,23 @@ Update config file
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerFilesApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String path = path_example; // String | File path
-final BuiltMap<String, JsonObject> requestBody = Object; // BuiltMap<String, JsonObject> | 
+final api_instance = ServerFilesApi();
+final serverId = serverId_example; // String | Unique server ID
+final path = path_example; // String | File path
+final requestBody = Map<String, Object>(); // Map<String, Object> | 
 
 try {
-    final response = api.postConfigFileData(serverId, path, requestBody);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.postConfigFileData(serverId, path, requestBody);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerFilesApi->postConfigFileData: $e\n');
 }
 ```
@@ -217,7 +247,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **serverId** | **String**| Unique server ID | 
  **path** | **String**| File path | 
- **requestBody** | [**BuiltMap&lt;String, JsonObject&gt;**](JsonObject.md)|  | [optional] 
+ **requestBody** | [**Map<String, Object>**](Object.md)|  | [optional] 
 
 ### Return type
 
@@ -241,17 +271,23 @@ Write file content or create a directory
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getServerFilesApi();
-final String serverId = serverId_example; // String | Unique server ID
-final String path = path_example; // String | File path
-final MultipartFile body = BINARY_DATA_HERE; // MultipartFile | 
+final api_instance = ServerFilesApi();
+final serverId = serverId_example; // String | Unique server ID
+final path = path_example; // String | File path
+final body = MultipartFile(); // MultipartFile | 
 
 try {
-    final response = api.putFileData(serverId, path, body);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.putFileData(serverId, path, body);
+    print(result);
+} catch (e) {
     print('Exception when calling ServerFilesApi->putFileData: $e\n');
 }
 ```

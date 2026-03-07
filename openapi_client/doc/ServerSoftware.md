@@ -1,8 +1,8 @@
-# openapi.model.ServerSoftware
+# openapi_client.model.ServerSoftware
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties

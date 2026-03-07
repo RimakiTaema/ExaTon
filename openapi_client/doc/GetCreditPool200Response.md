@@ -1,8 +1,8 @@
-# openapi.model.GetCreditPool200Response
+# openapi_client.model.GetCreditPool200Response
 
 ## Load the model package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 ## Properties

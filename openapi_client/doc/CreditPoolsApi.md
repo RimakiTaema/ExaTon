@@ -1,8 +1,8 @@
-# openapi.api.CreditPoolsApi
+# openapi_client.api.CreditPoolsApi
 
 ## Load the API package
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
 ```
 
 All URIs are relative to *https://api.exaroton.com/v1*
@@ -22,15 +22,21 @@ Get a credit pool
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getCreditPoolsApi();
-final String poolId = poolId_example; // String | Unique credit pool ID
+final api_instance = CreditPoolsApi();
+final poolId = poolId_example; // String | Unique credit pool ID
 
 try {
-    final response = api.getCreditPool(poolId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getCreditPool(poolId);
+    print(result);
+} catch (e) {
     print('Exception when calling CreditPoolsApi->getCreditPool: $e\n');
 }
 ```
@@ -63,15 +69,21 @@ Get all members in a credit pool
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getCreditPoolsApi();
-final String poolId = poolId_example; // String | Unique credit pool ID
+final api_instance = CreditPoolsApi();
+final poolId = poolId_example; // String | Unique credit pool ID
 
 try {
-    final response = api.getCreditPoolMembers(poolId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getCreditPoolMembers(poolId);
+    print(result);
+} catch (e) {
     print('Exception when calling CreditPoolsApi->getCreditPoolMembers: $e\n');
 }
 ```
@@ -104,15 +116,21 @@ Get all servers in a credit pool
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getCreditPoolsApi();
-final String poolId = poolId_example; // String | Unique credit pool ID
+final api_instance = CreditPoolsApi();
+final poolId = poolId_example; // String | Unique credit pool ID
 
 try {
-    final response = api.getCreditPoolServers(poolId);
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getCreditPoolServers(poolId);
+    print(result);
+} catch (e) {
     print('Exception when calling CreditPoolsApi->getCreditPoolServers: $e\n');
 }
 ```
@@ -145,14 +163,20 @@ List all credit pools
 
 ### Example
 ```dart
-import 'package:openapi/api.dart';
+import 'package:openapi_client/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
-final api = Openapi().getCreditPoolsApi();
+final api_instance = CreditPoolsApi();
 
 try {
-    final response = api.getCreditPools();
-    print(response);
-} on DioException catch (e) {
+    final result = api_instance.getCreditPools();
+    print(result);
+} catch (e) {
     print('Exception when calling CreditPoolsApi->getCreditPools: $e\n');
 }
 ```
