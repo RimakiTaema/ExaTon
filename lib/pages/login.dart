@@ -25,10 +25,14 @@ class _LoginPageState extends State<LoginPage> {
 
     final token = _tokenController.text.trim();
     try {
-      var response = await GetAccount(token: token).fetch();
+      var response = await GetAccount(token: token).run();
       if (response.statusCode == 200) {
         // Save token securely
         await AuthStorage.saveToken(token);
+
+        final name = response.data?.data?.name ?? "Unknown";
+
+        await AuthStorage.saveUsername(name);
 
         // Call the callback to refresh auth state
         if (mounted && widget.onLoginSuccess != null) {
@@ -63,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                 "RimaTon",
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight(600)),
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 40),
               const Text(
                 "Login with Exaroton Token",
                 style: TextStyle(fontSize: 22),

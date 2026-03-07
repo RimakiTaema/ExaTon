@@ -1,21 +1,20 @@
-import 'dart:convert';
-import '../http.dart';
+import 'package:dio/dio.dart';
+import 'package:openapi/openapi.dart';
 
 class GetAccount {
   final String token;
 
   GetAccount({required this.token});
 
-  Future<({String? token, int statusCode, String body})> fetch() async {
-    final exaroton = Exaroton(key: token);
-    var response = await exaroton.get("account");
+  Future<Response<GetAccount200Response>> run() async {
+    final dio = Dio();
 
-    final data = jsonDecode(response.body);
-    return (
-      token: data['token'] as String?,
-      statusCode: int.parse(response.statusCode),
-      body: response.body,
-    );
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    final apiClient = AccountApi(dio, standardSerializers);
+
+    final res = await apiClient.getAccount();
+
+    return res;
   }
 }
-
