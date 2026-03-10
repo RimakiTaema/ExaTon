@@ -1,14 +1,14 @@
 "use client"
 
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useRouter } from "next/navigation";
+import gsap from "gsap";
 import { Input } from "@/components/ui/input";
 import { Field, FieldSet, FieldLabel, FieldDescription, FieldGroup } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
 import Link from "next/link";
-import { motion } from "motion/react";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -16,6 +16,28 @@ export default function LoginPage() {
     const [token, setToken] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const cardRef = useRef<HTMLDivElement>(null);
+    const formRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            gsap.from(cardRef.current, {
+                opacity: 0,
+                y: 20,
+                scale: 0.97,
+                duration: 0.4,
+                ease: "power3.out",
+            });
+            gsap.from(formRef.current, {
+                opacity: 0,
+                x: 30,
+                duration: 0.35,
+                delay: 0.15,
+                ease: "power2.out",
+            });
+        });
+        return () => ctx.revert();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,10 +49,8 @@ export default function LoginPage() {
         try {
             const result = await invoke<{ success: boolean; data: { name: string; email: string; credits: number } | null }>("get_acc_info", { token });
             if (result.success && result.data) {
-                // Store token securely in system keychain
                 await invoke("save_token", { email: result.data.email, token });
 
-                // Store only display info (no token) in localStorage
                 const accounts = JSON.parse(localStorage.getItem("exaton_accounts") ?? "[]");
                 const account = { name: result.data.name, email: result.data.email, credits: result.data.credits };
                 const idx = accounts.findIndex((a: { email: string }) => a.email === account.email);
@@ -40,7 +60,16 @@ export default function LoginPage() {
                     accounts.push(account);
                 }
                 localStorage.setItem("exaton_accounts", JSON.stringify(accounts));
-                router.push("/");
+
+                // Animate out before navigating
+                gsap.to(cardRef.current, {
+                    opacity: 0,
+                    y: -15,
+                    scale: 0.97,
+                    duration: 0.25,
+                    ease: "power2.in",
+                    onComplete: () => router.push("/"),
+                });
             } else {
                 setError("Invalid token or account not found.");
             }
@@ -53,7 +82,7 @@ export default function LoginPage() {
 
     return (
         <div className="flex h-screen items-center justify-center">
-            <div className="w-96 rounded-xl bg-white p-8 shadow-lg">
+            <div ref={cardRef} className="w-96 rounded-xl bg-white p-8 shadow-lg">
                 <Link href="/">
                     <ArrowLeftIcon size={20} className="cursor-pointer text-gray-500 hover:text-gray-900" />
                 </Link>
@@ -67,11 +96,7 @@ export default function LoginPage() {
                     </p>
                 </div>
                 <br/>
-                <motion.div
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.26, ease: "easeOut" }}
-                >
+                <div ref={formRef}>
                     <form onSubmit={handleSubmit}>
                         <FieldSet>
                             <FieldGroup>
@@ -102,7 +127,7 @@ export default function LoginPage() {
                             </FieldGroup>
                         </FieldSet>
                     </form>
-                </motion.div>
+                </div>
            </div>
         </div>
     )
