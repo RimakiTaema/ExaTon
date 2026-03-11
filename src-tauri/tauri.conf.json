@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "ExaTon Next",
-  "version": "1.0.0",
+  "version": "1.0.0-hotfix2",
   "identifier": "net.rimaki.exatonext",
   "build": {
     "frontendDist": "../out",
