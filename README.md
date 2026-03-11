@@ -1,6 +1,8 @@
 # ExaTon
 The Exaroton Client For Easier Basic Server Controls
 
+# This Branch Prior to EOL In Favor Of ExaTon NEXT 
+
 ## Downloads
 [**Github Releases**](https://github.com/RimakiTaema/ExaTon/releases/latest)
 <br>
