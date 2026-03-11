@@ -12,10 +12,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { useEffect, useRef, useState } from "react"
 import gsap from "gsap"
-import { HouseIcon, CubeIcon, GearIcon, UserIcon, ClockIcon } from "@phosphor-icons/react"
+import { HouseIcon, CubeIcon, GearIcon, UserIcon, ClockIcon, SidebarSimpleIcon, BugIcon } from "@phosphor-icons/react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -29,11 +30,12 @@ const navItems = [
   { title: "Home", href: "/home", icon: HouseIcon, className: "" },
   { title: "Servers", href: "/home/servers", icon: CubeIcon, className: "" },
   { title: "Settings", href: "/home/settings", icon: GearIcon, className: "" },
-  { title: "Debug Option", href: "/home/debug", icon: GearIcon, className: "text-red-500 hover:bg-red-50 hover:text-red-600 data-[active=true]:bg-red-50 data-[active=true]:text-red-600"}
+  { title: "Debug Option", href: "/home/debug", icon: BugIcon, className: "text-red-500 hover:bg-red-50 hover:text-red-600 data-[active=true]:bg-red-50 data-[active=true]:text-red-600"}
 ]
 
 export function AppSidebar() {
   const sidebarRef = useRef<HTMLDivElement>(null)
+  const { toggleSidebar, open } = useSidebar()
   const [account, setAccount] = useState<Account | null>(null)
 
   useEffect(() => {
@@ -74,9 +76,14 @@ export function AppSidebar() {
     <div ref={sidebarRef}>
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <Image src="/66498436.png" alt="ExaTon" width={24} height={24} className="shrink-0" />
-          <span className="text-sm font-semibold truncate group-data-[collapsible=icon]:hidden">ExaTon NEXT</span>
+        <div className="flex items-center justify-between px-2 py-1">
+          <button onClick={() => !open && toggleSidebar()} className="flex items-center gap-2 group-data-[collapsible=icon]:cursor-pointer">
+            <Image src="/66498436.png" alt="ExaTon" width={24} height={24} className="shrink-0" />
+            <span className="text-sm font-semibold truncate group-data-[collapsible=icon]:hidden">ExaTon NEXT</span>
+          </button>
+          <button onClick={toggleSidebar} className="group-data-[collapsible=icon]:hidden cursor-pointer text-muted-foreground hover:text-foreground">
+            <SidebarSimpleIcon size={18} />
+          </button>
         </div>
       </SidebarHeader>
       <SidebarContent>
