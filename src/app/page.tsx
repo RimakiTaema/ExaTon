@@ -1,12 +1,14 @@
 "use client"
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation"
+import { invoke } from "@tauri-apps/api/core"
 import gsap from "gsap";
 import { Button } from "@/components/ui/button";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import Link from "next/link";
 import Image from "next/image";
-import { PlusIcon, UserIcon } from "@phosphor-icons/react";
-import { redirect, RedirectType } from "next/navigation";
+import { DotsThreeVerticalIcon, PlusIcon, UserIcon } from "@phosphor-icons/react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type Account = {
     name: string;
@@ -22,6 +24,7 @@ export default function Home() {
     useEffect(() => {
         try {
             const raw = localStorage.getItem("exaton_accounts");
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             if (raw) setAccounts(JSON.parse(raw));
         } catch { /* empty */ }
     }, []);
@@ -68,9 +71,24 @@ export default function Home() {
         })
     },[])
 
+    const router = useRouter()
+
     const handleSelect = (account: Account) => {
         localStorage.setItem("exaton_selected_account", account.email);
-        redirect("/home", RedirectType.replace);
+        router.push("/home");
+    };
+
+    const handleLogout = async (e: React.MouseEvent, account: Account) => {
+        e.stopPropagation()
+        try {
+            await invoke("delete_token", { email: account.email }).catch(() => {})
+        } catch { /* empty */ }
+        const updated = accounts.filter((a) => a.email !== account.email)
+        setAccounts(updated)
+        localStorage.setItem("exaton_accounts", JSON.stringify(updated))
+        if (localStorage.getItem("exaton_selected_account") === account.email) {
+            localStorage.removeItem("exaton_selected_account")
+        }
     };
 
     return (
@@ -104,6 +122,16 @@ export default function Home() {
                                         <p className="text-xs text-gray-500 truncate">{account.email}</p>
                                     </div>
                                     <p className="text-xs text-emerald-700 font-medium">{account.credits.toFixed(2)} cr</p>
+                                    <Popover>
+                                        <PopoverTrigger onClick={(e) => e.stopPropagation()}>
+                                            <DotsThreeVerticalIcon size={16}/>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-40" onClick={(e) => e.stopPropagation()}>
+                                            <Button variant="destructive" className="w-full cursor-pointer" onClick={(e) => handleLogout(e, account)}>
+                                                Logout
+                                            </Button>
+                                        </PopoverContent>
+                                    </Popover>
                                 </button>
                             ))}
                             <Link href="/login" data-account-card className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 p-3 text-left transition-colors hover:bg-gray-50 cursor-pointer">

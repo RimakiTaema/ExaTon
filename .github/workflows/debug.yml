@@ -1,0 +1,142 @@
+name: Debug Build
+
+on:
+  push:
+    branches:
+      - next
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            runner: macos-latest
+            bundles: dmg
+          - name: Windows
+            runner: windows-latest
+            bundles: msi,nsis
+          - name: Linux
+            runner: ubuntu-22.04
+            bundles: deb,appimage
+
+    name: Desktop — ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libdbus-1-dev \
+            libssl-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            libjavascriptcoregtk-4.1-dev
+
+      - name: Install frontend dependencies
+        run: bun install
+
+      - name: Patch debug version
+        shell: bash
+        run: |
+          DEBUG_VERSION="debug_$(date -u +'%Y%m%d-%H%M%S')_1.0.0-snapshot"
+          echo "DEBUG_VERSION=$DEBUG_VERSION" >> "$GITHUB_ENV"
+
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            sed -i '' "s/\"version\": \".*\"/\"version\": \"$DEBUG_VERSION\"/" src-tauri/tauri.conf.json
+          else
+            sed -i "s/\"version\": \".*\"/\"version\": \"$DEBUG_VERSION\"/" src-tauri/tauri.conf.json
+          fi
+
+          echo "Patched version to: $DEBUG_VERSION"
+          grep '"version"' src-tauri/tauri.conf.json
+
+      - name: Build Tauri app (debug)
+        uses: tauri-apps/tauri-action@v0
+        with:
+          tauriScript: bun run tauri
+          args: --debug --bundles ${{ matrix.bundles }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-${{ matrix.name }}-${{ env.DEBUG_VERSION }}
+          path: |
+            src-tauri/target/debug/bundle/**/*.dmg
+            src-tauri/target/debug/bundle/**/*.app
+            src-tauri/target/debug/bundle/**/*.msi
+            src-tauri/target/debug/bundle/**/*.exe
+            src-tauri/target/debug/bundle/**/*.deb
+            src-tauri/target/debug/bundle/**/*.AppImage
+          if-no-files-found: warn
+          retention-days: 7
+
+  # ─── Mobile (disabled) ───────────────────────────────────────────
+  # build-mobile:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - name: iOS
+  #           runner: macos-latest
+  #           command: bun run ios:build
+  #         - name: Android
+  #           runner: ubuntu-latest
+  #           command: bun run android:build
+  #
+  #   name: Mobile — ${{ matrix.name }}
+  #   runs-on: ${{ matrix.runner }}
+  #
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup bun
+  #       uses: oven-sh/setup-bun@v2
+  #
+  #     - name: Setup Rust
+  #       uses: dtolnay/rust-toolchain@stable
+  #
+  #     - name: Setup Java (Android)
+  #       if: matrix.name == 'Android'
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         distribution: temurin
+  #         java-version: 17
+  #
+  #     - name: Setup Android SDK (Android)
+  #       if: matrix.name == 'Android'
+  #       uses: android-actions/setup-android@v3
+  #
+  #     - name: Install frontend dependencies
+  #       run: bun install
+  #
+  #     - name: Build
+  #       run: ${{ matrix.command }}

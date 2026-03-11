@@ -4,7 +4,6 @@ import { PageTransition } from "@/components/page-transition"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRouter } from "next/navigation"
-import { hostname, platform } from "@tauri-apps/plugin-os"
 
 type Account = {
   name: string
@@ -22,6 +21,7 @@ export default function DebugPage() {
           if (!selectedEmail) return
           const accounts: Account[] = JSON.parse(localStorage.getItem("exaton_accounts") ?? "[]")
           const found = accounts.find((a) => a.email === selectedEmail)
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           if (found) setAccount(found)
         } catch { /* empty */ }
       }, [])
@@ -54,22 +54,6 @@ export default function DebugPage() {
                         Go Back To Main Menu (Accounts Page)
                     </TooltipContent>
                 </Tooltip>
-                <div>
-                    <div className="font-semibold text-xl">
-                        Account Infomation
-                    </div>
-                    <div className="outline-1 outline-gray-600 rounded-md px-1">
-                        <div>
-                           Account Name: {account?.name}
-                        </div>
-                        <div>
-                           Account Email: {account?.email}
-                        </div>
-                        <div>
-                           Credits: {account?.credits}
-                        </div>
-                    </div>
-                </div>
             </div>
         </PageTransition>
     )
