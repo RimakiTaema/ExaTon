@@ -92,7 +92,7 @@ export default function HomePage() {
                                 ))}
                             </div>
                             <p className="text-sm text-gray-300 text-center mt-3">
-                                And More At Servers...
+                                And More At Servers Tab
                             </p>
                         </>
                     )}
