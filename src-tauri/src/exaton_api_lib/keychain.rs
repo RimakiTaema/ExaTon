@@ -2,6 +2,9 @@
 const SERVICE_NAME: &str = "net.rimaki.exatonext";
 #[allow(dead_code)]
 const STORE_FILENAME: &str = "secure-tokens.json";
+ pub fn init() {
+    log::info!("Initializing keychain module");
+}
 
 // Desktop: use system keychain (macOS Keychain, Windows Credential Manager, Linux Secret Service)
 #[cfg(not(any(target_os = "ios", target_os = "android")))]

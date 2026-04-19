@@ -3,6 +3,10 @@ use crate::exaton_api_lib::token_convert::make_config;
 use openapi::apis::account_api::get_account;
 use openapi::models::GetAccount200Response;
 
+pub fn init() {
+    log::info!("Initializing accounts module");
+}
+
 #[tauri::command]
 pub async fn get_acc_info(token: &str) -> Result<GetAccount200Response, String> {
     let config = make_config(token);
