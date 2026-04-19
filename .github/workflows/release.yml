@@ -83,6 +83,12 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tauriScript: bun run tauri
           args: --bundles ${{ matrix.bundles }}
@@ -108,6 +114,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -118,6 +126,56 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | head -50
 
+      - name: Build release notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${CURRENT_TAG}$" | head -1 || true)
+
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..${CURRENT_TAG}"
+            HEADER="### Changes since \`${PREV_TAG}\`"
+          else
+            RANGE="${CURRENT_TAG}"
+            HEADER="### Initial commits"
+          fi
+
+          {
+            echo "## ExaTon Next ${CURRENT_TAG}"
+            echo ""
+            echo "${HEADER}"
+            echo ""
+            git log "$RANGE" --no-merges --format="%H%x09%h%x09%s" | while IFS=$'\t' read -r full short subject; do
+              login=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${full}" --jq '.author.login // ""' 2>/dev/null || true)
+              if [ -n "$login" ]; then
+                printf -- "- \`%s\` %s — @%s\n" "$short" "$subject" "$login"
+              else
+                printf -- "- \`%s\` %s\n" "$short" "$subject"
+              fi
+            done
+            echo ""
+            echo "---"
+            echo ""
+            echo "### macOS install"
+            echo ""
+            echo "If the app shows \"damaged\" or \"cannot verify developer\" on first launch:"
+            echo ""
+            echo "1. Open **Terminal** (⌘Space → \"Terminal\")."
+            echo "2. Type the following with a **trailing space** (don't press Enter yet):"
+            echo ""
+            echo '   ```bash'
+            echo '   xattr -cr '
+            echo '   ```'
+            echo ""
+            echo "3. Drag the **ExaTon Next** app from Finder *into* the Terminal window — the full path auto-completes."
+            echo "4. Press **Enter**. Then launch the app normally."
+          } > release-notes.md
+
+          echo "--- release-notes.md ---"
+          cat release-notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -126,7 +184,7 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
           files: artifacts/**/*
-          generate_release_notes: true
+          body_path: release-notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
