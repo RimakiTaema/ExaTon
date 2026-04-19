@@ -66,7 +66,7 @@ jobs:
       - name: Patch debug version
         shell: bash
         run: |
-          DEBUG_LABEL="debug_$(date -u +'%Y%m%d-%H%M%S')_1.0.0-snapshot"
+          DEBUG_LABEL="debug_$(date -u +'%Y%m%d-%H%M%S')_1.1.0-snapshot"
           echo "DEBUG_LABEL=$DEBUG_LABEL" >> "$GITHUB_ENV"
 
           if [[ "$RUNNER_OS" == "macOS" ]]; then
