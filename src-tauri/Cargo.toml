@@ -1,6 +1,6 @@
 [package]
 name = "exaton-next"
-version = "1.1.0"
+version = "1.1.1"
 description = "The Next Generation Of Exaroton Client"
 authors = ["RimakiTaema"]
 license = ""
