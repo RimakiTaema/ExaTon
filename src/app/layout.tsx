@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { ConnectionGate } from "@/components/connection-gate";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,10 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("font-mono", jetbrainsMono.variable)}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <TooltipProvider>{children}</TooltipProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <TooltipProvider>
+          <ConnectionGate>{children}</ConnectionGate>
+        </TooltipProvider>
       </body>
     </html>
   );
