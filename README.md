@@ -1,51 +1,29 @@
-# ExaTon
-The Exaroton Client For Easier Basic Server Controls
+# ExaTon NEXT
 
-# This Branch Prior to EOL In Favor Of ExaTon NEXT 
-
-## Downloads
-[**Github Releases**](https://github.com/RimakiTaema/ExaTon/releases/latest)
-<br>
-
-**Mobile Platform**
-
-[![Nightly](https://img.shields.io/badge/Nightly-Android-e4ccff?style=flat)](https://nightly.link/RimakiTaema/ExaTon/workflows/buildci/main/android-build.zip)
-
-**Desktop Platform**
-
-[![Nightly](https://img.shields.io/badge/Nightly-Linux-6c63ff?style=flat)](https://nightly.link/RimakiTaema/ExaTon/workflows/buildci/main/linux-build.zip)
-[![Nightly](https://img.shields.io/badge/Nightly-Windows-6c63ff?style=flat)](https://nightly.link/RimakiTaema/ExaTon/workflows/buildci/main/windows-build.zip)
+The NEXT Generation Of ExaTon Update
 
 ## Features
-- [x] Login From API Token
-- [ ] Multiple Account Support
-- [ ] Server Management Page
-- [ ] Server Button Features
-- [ ] Settings
-- [ ] And More...
 
-## 🛑 Before You Continue
+- [x] Login From Token
+- [x] Multi Account
+- [ ] Better UI/UX QOL
+- [ ] And More
 
-⚠️ **Current Build Status**  
-The build is currently not working on some platforms — especially **mobile platforms** — due to a URI-related error.
+## Install
 
-Please keep this in mind before reporting issues.
+### macOS
 
----
+ExaTon is ad-hoc signed, not Apple-notarized. On first launch macOS may show
+**"ExaTon Next is damaged and can't be opened"** or similar. To fix it:
 
-🔐 **API Token Security**
+1. Open **Terminal** (⌘Space → "Terminal").
+2. Type the following, **with a trailing space**, and do NOT press Enter yet:
+   ```bash
+   xattr -cr 
+   ```
+3. Drag the **ExaTon Next** app icon from Finder *into* the Terminal window.
+   Its full path will auto-complete after the space.
+4. Press **Enter**. The command runs silently.
+5. Launch ExaTon Next normally — it will open.
 
-If you have an API token:
-
-- **Do NOT share it**
-- Treat it like a password
-- Keep it private and secure
-
-If someone gains access to your token, they could:
-
-- Add OP or whitelist themselves  
-- Modify the MOTD  
-- Change server plans  
-- Perform other unauthorized actions  
-
-Protect your token at all times.
+This only needs to be done once per install (per update).
