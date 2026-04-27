@@ -1,6 +1,7 @@
 # ExaTon
 
-The Exaroton Server Control Application
+The Exaroton Server Control GUI App For Control Server Without Entering Website
+(Some Feature Might Need Website For Management)
 
 ## Major Goal
 - [x] Windows Release
