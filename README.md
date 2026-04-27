@@ -1,6 +1,6 @@
 # ExaTon
 
-The Exaroton Control Application
+The Exaroton Server Control Application
 
 ## Major Goal
 - [x] Windows Release
