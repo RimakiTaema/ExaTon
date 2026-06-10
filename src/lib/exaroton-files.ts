@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { recordDebugEvent } from "@/lib/debug-log";
 
 export type FileInfo = {
   path?: string;
@@ -21,12 +22,44 @@ export type FileInfoResponse = {
 
 type Auth = { email: string; serverid: string };
 
+function debugArgs(args: Record<string, unknown>) {
+  if (!("content" in args)) return args;
+  const content = args.content;
+  return {
+    ...args,
+    content: undefined,
+    contentBytes: Array.isArray(content) ? content.length : undefined,
+  };
+}
+
+async function invokeFile<T>(command: string, args: Record<string, unknown>): Promise<T> {
+  const started = Date.now();
+  recordDebugEvent({ scope: "files", message: `${command} started`, detail: debugArgs(args) });
+  try {
+    const result = await invoke<T>(command, args);
+    recordDebugEvent({
+      scope: "files",
+      message: `${command} succeeded`,
+      detail: { elapsedMs: Date.now() - started },
+    });
+    return result;
+  } catch (error) {
+    recordDebugEvent({
+      level: "error",
+      scope: "files",
+      message: `${command} failed`,
+      detail: error,
+    });
+    throw error;
+  }
+}
+
 export async function listFiles({
   email,
   serverid,
   path,
 }: Auth & { path: string }): Promise<FileInfo | undefined> {
-  const res = await invoke<FileInfoResponse>("list_files", { email, serverid, path });
+  const res = await invokeFile<FileInfoResponse>("list_files", { email, serverid, path });
   return res.data;
 }
 
@@ -35,7 +68,7 @@ export async function readFile({
   serverid,
   path,
 }: Auth & { path: string }): Promise<Uint8Array> {
-  const bytes = await invoke<number[]>("read_file", { email, serverid, path });
+  const bytes = await invokeFile<number[]>("read_file", { email, serverid, path });
   return new Uint8Array(bytes);
 }
 
@@ -50,7 +83,7 @@ export async function writeFile({
   path,
   content,
 }: Auth & { path: string; content: Uint8Array }): Promise<void> {
-  await invoke("write_file", { email, serverid, path, content: Array.from(content) });
+  await invokeFile("write_file", { email, serverid, path, content: Array.from(content) });
 }
 
 export async function writeFileText(args: Auth & { path: string; text: string }): Promise<void> {
@@ -63,7 +96,7 @@ export async function deleteServerFile({
   serverid,
   path,
 }: Auth & { path: string }): Promise<void> {
-  await invoke("delete_server_file", { email, serverid, path });
+  await invokeFile("delete_server_file", { email, serverid, path });
 }
 
 export async function uploadFile({
@@ -72,7 +105,7 @@ export async function uploadFile({
   remotePath,
   localPath,
 }: Auth & { remotePath: string; localPath: string }): Promise<void> {
-  await invoke("upload_file", { email, serverid, remotePath, localPath });
+  await invokeFile("upload_file", { email, serverid, remotePath, localPath });
 }
 
 export async function downloadFile({
@@ -81,5 +114,5 @@ export async function downloadFile({
   remotePath,
   savePath,
 }: Auth & { remotePath: string; savePath: string }): Promise<void> {
-  await invoke("download_file", { email, serverid, remotePath, savePath });
+  await invokeFile("download_file", { email, serverid, remotePath, savePath });
 }
