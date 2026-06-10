@@ -9,7 +9,6 @@ import {
   CubeIcon,
   DoorOpenIcon,
   FolderIcon,
-  GearIcon,
   HouseIcon,
   ScrollIcon,
   SlidersIcon,
@@ -25,6 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { STATUS_MAP } from "@/components/server-card";
 import {
   Sidebar,
   SidebarContent,
@@ -47,6 +47,7 @@ import {
   saveCachedSummary,
 } from "@/lib/account-summary";
 import { type CreditDisplay, loadCreditDisplay } from "@/lib/display-prefs";
+import { loadRecentServers, type RecentServer, subscribeRecentServers } from "@/lib/recent-servers";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -60,7 +61,6 @@ type Account = {
 const mainNavItems = [
   { title: "Home", href: "/home", icon: HouseIcon, className: "" },
   { title: "Servers", href: "/home/servers", icon: CubeIcon, className: "" },
-  { title: "Settings", href: "/home/settings", icon: GearIcon, className: "" },
   {
     title: "Debug Option",
     href: "/home/debug",
@@ -105,6 +105,7 @@ export function AppSidebar() {
   const [account, setAccount] = useState<Account | null>(null);
   const [summary, setSummary] = useState<CachedAccountSummary | null>(null);
   const [displayMode, setDisplayMode] = useState<CreditDisplay>("both");
+  const [recentServers, setRecentServers] = useState<RecentServer[]>([]);
   const [serverName, setServerName] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
   const pathname = usePathname();
@@ -148,6 +149,11 @@ export function AppSidebar() {
     openUrl("https://exaroton.com/account/");
   };
 
+  const handleOpenProfile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push("/home/settings");
+  };
+
   const isServerDetail = pathname === "/home/servers" && searchParams.get("id");
   const serverId = searchParams.get("id");
   const navItems = isServerDetail && serverId ? serverNavItems(serverId) : mainNavItems;
@@ -179,6 +185,16 @@ export function AppSidebar() {
     window.addEventListener("focus", syncDisplay);
     return () => window.removeEventListener("focus", syncDisplay);
   }, []);
+
+  useEffect(() => {
+    if (!account) {
+      setRecentServers([]);
+      return;
+    }
+    const syncRecent = () => setRecentServers(loadRecentServers(account.email).slice(0, 5));
+    syncRecent();
+    return subscribeRecentServers(syncRecent);
+  }, [account]);
 
   useEffect(() => {
     if (!isServerDetail || !serverId || !account) {
@@ -234,6 +250,7 @@ export function AppSidebar() {
         <SidebarHeader>
           <div className="flex items-center justify-between px-2 py-1">
             <button
+              type="button"
               onClick={() => !open && toggleSidebar()}
               className="flex items-center gap-2 group-data-[collapsible=icon]:cursor-pointer"
             >
@@ -243,6 +260,7 @@ export function AppSidebar() {
               </span>
             </button>
             <button
+              type="button"
               onClick={toggleSidebar}
               className="group-data-[collapsible=icon]:hidden cursor-pointer text-muted-foreground hover:text-foreground"
             >
@@ -296,12 +314,28 @@ export function AppSidebar() {
                 <SidebarGroupLabel>Recent Servers</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton tooltip="Coming soon" disabled>
-                        <ClockIcon />
-                        <span className="text-muted-foreground">Coming soon</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    {recentServers.length === 0 && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton tooltip="No recent servers" disabled>
+                          <ClockIcon />
+                          <span className="text-muted-foreground">No recent servers</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                    {recentServers.map((server) => {
+                      const status = STATUS_MAP[server.status] ?? STATUS_MAP[0];
+                      return (
+                        <SidebarMenuItem key={`${server.accountEmail}:${server.id}`}>
+                          <SidebarMenuButton
+                            tooltip={server.name}
+                            render={<Link href={`/home/servers?id=${server.id}`} />}
+                          >
+                            <span className={`size-2 rounded-full ${status.dot}`} />
+                            <span>{server.name}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
@@ -401,6 +435,15 @@ export function AppSidebar() {
                             </div>
                           </div>
                         )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full cursor-pointer"
+                          onClick={handleOpenProfile}
+                        >
+                          <UserIcon size={14} />
+                          Profile Settings
+                        </Button>
                       </div>
                     </PopoverContent>
                   </Popover>

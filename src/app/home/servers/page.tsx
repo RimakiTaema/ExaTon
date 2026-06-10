@@ -10,11 +10,16 @@ import type { ServerData } from "@/components/server-card";
 import { ServerConsole } from "@/components/servers/server-console";
 import { ServerHeader } from "@/components/servers/server-header";
 import { ServerList } from "@/components/servers/server-list";
+import { ServerLogsPanel } from "@/components/servers/server-logs-panel";
+import { ServerOptionsPanel } from "@/components/servers/server-options-panel";
 import { ServerOverview } from "@/components/servers/server-overview";
+import { ServerPlayersPanel } from "@/components/servers/server-players-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccount } from "@/hooks/use-account";
 import { useServerWs } from "@/hooks/use-server-ws";
 import { useStatsHistory } from "@/hooks/use-stats-history";
+import { recordDebugEvent } from "@/lib/debug-log";
+import { rememberRecentServer } from "@/lib/recent-servers";
 
 export default function ServerPage() {
   const searchParams = useSearchParams();
@@ -30,18 +35,36 @@ export default function ServerPage() {
 
   const ws = useServerWs(account?.email ?? null, id);
   const statsHistory = useStatsHistory(ws.stats as Record<string, unknown> | null | undefined);
+  const server = id ? (ws.serverData ?? restServer) : null;
+  const rememberedKeyRef = useRef("");
+
+  useEffect(() => {
+    if (!account) setLoading(false);
+  }, [account]);
 
   useEffect(() => {
     if (!account || id) return;
     (async () => {
       try {
         setLoading(true);
+        setError("");
+        recordDebugEvent({
+          scope: "servers",
+          message: "Loading server list",
+          detail: { email: account.email },
+        });
         const result = await invoke<{ success?: boolean; data?: ServerData[] }>(
           "get_servers_info",
           { email: account.email },
         );
         setServers(result.data ?? []);
       } catch (err) {
+        recordDebugEvent({
+          level: "error",
+          scope: "servers",
+          message: "Server list failed",
+          detail: err,
+        });
         setError(String(err));
       } finally {
         setLoading(false);
@@ -54,12 +77,24 @@ export default function ServerPage() {
     (async () => {
       try {
         setLoading(true);
+        setError("");
+        recordDebugEvent({
+          scope: "servers",
+          message: "Loading server detail",
+          detail: { email: account.email, serverid: id },
+        });
         const result = await invoke<{ data?: ServerData }>("get_server_info", {
           email: account.email,
           serverid: id,
         });
         if (result.data) setRestServer(result.data);
       } catch (err) {
+        recordDebugEvent({
+          level: "error",
+          scope: "servers",
+          message: "Server detail failed",
+          detail: err,
+        });
         setError(String(err));
       } finally {
         setLoading(false);
@@ -74,6 +109,19 @@ export default function ServerPage() {
       ws.unsubscribe("console");
     };
   }, [ws.connected, ws.subscribe, ws.unsubscribe, id, tab]);
+
+  useEffect(() => {
+    if (!account || !server?.id) return;
+    const key = `${account.email}:${server.id}:${server.name}:${server.address}:${server.status}`;
+    if (rememberedKeyRef.current === key) return;
+    rememberedKeyRef.current = key;
+    rememberRecentServer(account.email, {
+      id: server.id,
+      name: server.name,
+      address: server.address,
+      status: server.status,
+    });
+  }, [account, server?.address, server?.id, server?.name, server?.status]);
 
   useEffect(() => {
     if (!ws.connected || !id || tab !== "overview") return;
@@ -107,8 +155,6 @@ export default function ServerPage() {
     );
   }
 
-  const server = ws.serverData ?? restServer;
-
   return (
     <PageTransition>
       <div className="flex flex-col px-2 py-2 gap-4">
@@ -137,13 +183,22 @@ export default function ServerPage() {
               )}
               {tab === "files" && <FilesPanel email={account.email} serverid={id} />}
               {tab === "players" && (
-                <p className="text-sm text-muted-foreground italic">Players — coming soon</p>
+                <ServerPlayersPanel
+                  email={account.email}
+                  serverid={id}
+                  onlinePlayers={server.players?.list ?? []}
+                />
               )}
-              {tab === "logs" && (
-                <p className="text-sm text-muted-foreground italic">Logs — coming soon</p>
-              )}
+              {tab === "logs" && <ServerLogsPanel email={account.email} serverid={id} />}
               {tab === "options" && (
-                <p className="text-sm text-muted-foreground italic">Options — coming soon</p>
+                <ServerOptionsPanel
+                  email={account.email}
+                  serverid={id}
+                  fallbackMotd={server.motd}
+                />
+              )}
+              {!["overview", "console", "files", "players", "logs", "options"].includes(tab) && (
+                <p className="text-sm text-muted-foreground">Unknown server tab.</p>
               )}
             </div>
           </>
