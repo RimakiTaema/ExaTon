@@ -18,5 +18,5 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] Files
 - [x] Player Control
 - [x] Server Config
-- [ ] Personalization (Soon In 1.2.x)
+- [ ] Personalization (Soon In 1.4.x)
 - ~~[ ] Pool Credit Management~~ Not Possible (CPP Next Would)
