@@ -1,5 +1,6 @@
 "use client";
 import { ServerCard, type ServerData } from "@/components/server-card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
@@ -19,7 +20,14 @@ export function ServerList({ servers, loading, error }: Props) {
           ))}
         </div>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-red-600">{error}</p>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      )}
       {!loading && !error && servers.length === 0 && (
         <p className="text-sm text-muted-foreground">No servers found.</p>
       )}

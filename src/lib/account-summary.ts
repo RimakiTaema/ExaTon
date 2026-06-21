@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { appendCreditSnapshot } from "@/lib/credit-history";
 
 export type PoolSummary = {
   id: string;
@@ -41,6 +42,10 @@ export function saveCachedSummary(summary: AccountSummary): CachedAccountSummary
   } catch {
     /* storage quota / private mode — non-fatal */
   }
+  const history = appendCreditSnapshot(summary.email, {
+    personal: summary.personalCredits,
+    pool: summary.poolCredits,
+  });
   return cached;
 }
 

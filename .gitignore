@@ -30,3 +30,8 @@ pnpm-debug.log*
 /out
 .claude
 .next
+.cursor/
+
+# build artifacts
+next-env.d.ts
+tsconfig.tsbuildinfo

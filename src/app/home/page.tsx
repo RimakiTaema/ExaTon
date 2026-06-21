@@ -2,9 +2,11 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import gsap from "gsap";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageTransition } from "@/components/page-transition";
 import { ServerCard, type ServerData } from "@/components/server-card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { recordDebugEvent } from "@/lib/debug-log";
 
@@ -93,7 +95,9 @@ export default function HomePage() {
   return (
     <PageTransition>
       <div className="flex flex-col px-2 py-2 gap-4">
-        <div className="text-2xl font-bold">Welcome Back {account?.name}!</div>
+        <div className="text-2xl font-bold">
+          Welcome Back{account?.name ? ` ${account.name}` : ""}!
+        </div>
         <div>
           <div className="text-xl font-semibold mb-3">Servers</div>
           {loading && (
@@ -103,7 +107,14 @@ export default function HomePage() {
               ))}
             </div>
           )}
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-red-600">{error}</p>
+              <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </div>
+          )}
           {!loading && !error && servers.length === 0 && (
             <p className="text-sm text-muted-foreground">No servers found.</p>
           )}
@@ -116,7 +127,12 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-gray-300 text-center mt-3">And More At Servers Tab</p>
+              <Link
+                href="/home/servers"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors text-center block mt-3"
+              >
+                View all {servers.length} servers →
+              </Link>
             </>
           )}
         </div>
