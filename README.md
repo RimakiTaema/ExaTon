@@ -8,5 +8,11 @@ The Exaroton Client Next Generation In Purpose of learning C++ (GTK 4.20 Base)
 
 ## Features
 [ ] Login
+
 [ ] Multi Accounts
-And More (I Don't Have idea right now)
+
+[ ] New API Core
+
+[ ] Built in Web Suport (For Accessing Non API Option e.g Pool Management)
+
+[ ] Pool Management
