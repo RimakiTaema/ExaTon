@@ -1,6 +1,7 @@
 mod exaton_api_lib;
 
 use exaton_api_lib::websocket::WsState;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -10,6 +11,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(WsState::default())
+        .manage(exaton_api_lib::scheduler::Scheduler::new())
         .invoke_handler(tauri::generate_handler![
             exaton_api_lib::accounts::get_acc_info,
             exaton_api_lib::accounts::save_token,
@@ -43,6 +45,11 @@ pub fn run() {
             exaton_api_lib::websocket::ws_subscribe,
             exaton_api_lib::websocket::ws_unsubscribe,
             exaton_api_lib::websocket::ws_send_command,
+            exaton_api_lib::scheduler::list_schedules,
+            exaton_api_lib::scheduler::create_schedule,
+            exaton_api_lib::scheduler::update_schedule,
+            exaton_api_lib::scheduler::delete_schedule,
+            exaton_api_lib::scheduler::toggle_schedule,
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
@@ -52,11 +59,23 @@ pub fn run() {
                         .build(),
                 )?;
             }
-            tauri::async_runtime::spawn(async {
+
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                // Load schedules from persistent store
+                let scheduler = app_handle.state::<exaton_api_lib::scheduler::Scheduler>();
+                scheduler.load(&app_handle).await;
+
+                // Spawn the daemon loop
+                let sched_arc = scheduler.schedules.clone();
+                exaton_api_lib::scheduler::spawn_daemon(sched_arc, app_handle.clone());
+
+                // Start server init last
                 if let Err(e) = exaton_api_lib::servers::init().await {
                     log::error!("servers init failed: {e}");
                 }
             });
+
             Ok(())
         })
         .run(tauri::generate_context!())

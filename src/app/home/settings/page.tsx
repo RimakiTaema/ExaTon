@@ -11,6 +11,7 @@ import {
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { GlobalCreditGraph } from "@/components/credit/global-credit-graph";
 import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +24,15 @@ import {
   saveCachedSummary,
 } from "@/lib/account-summary";
 import { APP_VERSION } from "@/lib/app-info";
-import { type CreditDisplay, loadCreditDisplay, saveCreditDisplay } from "@/lib/display-prefs";
+import { type CreditSnapshot, loadCreditHistory } from "@/lib/credit-history";
+import {
+  type CreditDisplay,
+  type LayoutMode,
+  loadCreditDisplay,
+  loadLayoutMode,
+  saveCreditDisplay,
+  saveLayoutMode,
+} from "@/lib/display-prefs";
 import { clearRecentServers, loadRecentServers } from "@/lib/recent-servers";
 
 const DISPLAY_OPTIONS: { value: CreditDisplay; label: string; hint: string }[] = [
@@ -37,22 +46,32 @@ export default function SettingPage() {
   const router = useRouter();
   const [summary, setSummary] = useState<CachedAccountSummary | null>(null);
   const [displayMode, setDisplayMode] = useState<CreditDisplay>("both");
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("topbar");
   const [recentCount, setRecentCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [creditHistory, setCreditHistory] = useState<CreditSnapshot[]>([]);
 
   useEffect(() => {
     setDisplayMode(loadCreditDisplay());
+    setLayoutMode(loadLayoutMode());
   }, []);
 
   useEffect(() => {
     if (!account) return;
     setSummary(loadCachedSummary(account.email));
     setRecentCount(loadRecentServers(account.email).length);
+    const history = loadCreditHistory(account.email);
+    setCreditHistory(history);
   }, [account]);
 
   const chooseDisplay = (mode: CreditDisplay) => {
     setDisplayMode(mode);
     saveCreditDisplay(mode);
+  };
+
+  const chooseLayout = (mode: LayoutMode) => {
+    setLayoutMode(mode);
+    saveLayoutMode(mode);
   };
 
   const refreshProfile = async () => {
@@ -61,6 +80,7 @@ export default function SettingPage() {
     try {
       const fresh = await refreshAccountSummary(account.email);
       setSummary(saveCachedSummary(fresh));
+      setCreditHistory(loadCreditHistory(account.email));
     } finally {
       setRefreshing(false);
     }
@@ -168,7 +188,52 @@ export default function SettingPage() {
               })}
             </div>
           </section>
+
+          <section className="rounded-md border p-3">
+            <div className="mb-3 flex items-center gap-2">
+              <SlidersIcon size={16} />
+              <p className="text-sm font-medium">Layout</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => chooseLayout("sidebar")}
+                className={`rounded-md border px-3 py-2 text-left transition-colors ${
+                  layoutMode === "sidebar"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                    : "hover:bg-muted/60"
+                }`}
+              >
+                <span className="block text-sm font-medium">Sidebar</span>
+                <span className="block text-xs text-muted-foreground">
+                  Classic navigation sidebar on the left.
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => chooseLayout("topbar")}
+                className={`rounded-md border px-3 py-2 text-left transition-colors ${
+                  layoutMode === "topbar"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                    : "hover:bg-muted/60"
+                }`}
+              >
+                <span className="block text-sm font-medium">Top Bar</span>
+                <span className="block text-xs text-muted-foreground">
+                  Navigation bar at the top. Server pages always use this mode.
+                </span>
+              </button>
+            </div>
+          </section>
         </div>
+
+        <section className="rounded-md border p-3">
+          <GlobalCreditGraph
+            email={account.email}
+            history={creditHistory}
+            onHistoryChange={setCreditHistory}
+          />
+        </section>
 
         <section className="rounded-md border p-3">
           <div className="flex flex-wrap items-center gap-2">

@@ -1,11 +1,12 @@
 use openapi::apis::server_files_api::get_file_info;
 use openapi::apis::servers_api::get_servers;
 use openapi::apis::servers_api::get_server;
-use openapi::apis::server_actions_api::{get_start_server, stop_server, restart_server};
+use openapi::apis::server_actions_api::{get_start_server, stop_server, restart_server, post_start_server};
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
 use openapi::models::GetServer200Response;
 use openapi::models::GetServers200Response;
 use openapi::models::GetStartServer200Response;
+use openapi::models::PostStartServerRequest;
 
 use crate::exaton_api_lib::api_access::{run_checks, CheckMode, ReachabilityError};
 use crate::exaton_api_lib::keychain;
@@ -84,10 +85,25 @@ pub async fn get_server_info(email: &str,serverid: &str) -> Result<GetServer200R
 
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
 #[tauri::command]
-pub async fn start_server_action(email: &str, serverid: &str) -> Result<GetStartServer200Response, String> {
+pub async fn start_server_action(
+    email: &str,
+    serverid: &str,
+    use_own_credits: Option<bool>,
+) -> Result<GetStartServer200Response, String> {
     let token = keychain::get_token(email)?;
     let config = make_config(&token);
-    get_start_server(&config, serverid).await.map_err(|e| e.to_string())
+    if let Some(true) = use_own_credits {
+        let req = PostStartServerRequest {
+            use_own_credits: Some(true),
+        };
+        post_start_server(&config, serverid, Some(req))
+            .await
+            .map_err(|e| e.to_string())
+    } else {
+        get_start_server(&config, serverid)
+            .await
+            .map_err(|e| e.to_string())
+    }
 }
 
 #[cfg(not(any(target_os = "ios", target_os = "android")))]

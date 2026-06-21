@@ -1,61 +1,61 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from "react"
-import { invoke } from "@tauri-apps/api/core"
-import { listen, type UnlistenFn } from "@tauri-apps/api/event"
-import type { ServerData } from "@/components/server-card"
+import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ServerData } from "@/components/server-card";
 
 // ── WS event payload types ──────────────────────────────────────────────
 
 type WsStatusEvent = {
-  server_id: string
-  status: Record<string, unknown>
-}
+  server_id: string;
+  status: Record<string, unknown>;
+};
 
 type WsConsoleEvent = {
-  server_id: string
-  line: string
-}
+  server_id: string;
+  line: string;
+};
 
 type WsStatsEvent = {
-  server_id: string
-  data: Record<string, unknown>
-}
+  server_id: string;
+  data: Record<string, unknown>;
+};
 
 type WsConnectionEvent = {
-  server_id: string
-}
+  server_id: string;
+};
 
 // ── Return type ─────────────────────────────────────────────────────────
 
 type UseServerWsReturn = {
   /** Whether the WebSocket is connected */
-  connected: boolean
+  connected: boolean;
   /** Whether the WS connection attempt failed (triggers REST fallback) */
-  failed: boolean
+  failed: boolean;
   /** Full server data parsed from WS status stream */
-  serverData: ServerData | null
+  serverData: ServerData | null;
   /** Console output lines */
-  consoleLines: string[]
+  consoleLines: string[];
   /** Live stats (memory, tps, etc.) */
-  stats: Record<string, unknown> | null
+  stats: Record<string, unknown> | null;
   /** Send a console command */
-  sendCommand: (command: string) => Promise<void>
+  sendCommand: (command: string) => Promise<void>;
   /** Subscribe to a stream (console, stats, tick, heap) */
-  subscribe: (stream: string) => Promise<void>
+  subscribe: (stream: string) => Promise<void>;
   /** Unsubscribe from a stream */
-  unsubscribe: (stream: string) => Promise<void>
-}
+  unsubscribe: (stream: string) => Promise<void>;
+};
 
-const MAX_CONSOLE_LINES = 500
+const MAX_CONSOLE_LINES = 500;
 
 // ── Parse raw WS/REST server data into our ServerData type ──────────────
 
 function parseServerData(raw: Record<string, unknown>): ServerData | null {
-  if (!raw.id || !raw.name) return null
+  if (!raw.id || !raw.name) return null;
 
-  const players = raw.players as Record<string, unknown> | undefined
-  const software = raw.software as Record<string, unknown> | null | undefined
+  const players = raw.players as Record<string, unknown> | undefined;
+  const software = raw.software as Record<string, unknown> | null | undefined;
 
   return {
     id: raw.id as string,
@@ -76,178 +76,160 @@ function parseServerData(raw: Record<string, unknown>): ServerData | null {
         }
       : null,
     shared: (raw.shared as boolean) ?? false,
-  }
+  };
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────
 
-export function useServerWs(
-  email: string | null,
-  serverId: string | null
-): UseServerWsReturn {
-  const [connected, setConnected] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const [serverData, setServerData] = useState<ServerData | null>(null)
-  const [consoleLines, setConsoleLines] = useState<string[]>([])
-  const [stats, setStats] = useState<Record<string, unknown> | null>(null)
-  const unlistenRefs = useRef<UnlistenFn[]>([])
+export function useServerWs(email: string | null, serverId: string | null): UseServerWsReturn {
+  const [connected, setConnected] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [serverData, setServerData] = useState<ServerData | null>(null);
+  const [consoleLines, setConsoleLines] = useState<string[]>([]);
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
+  const unlistenRefs = useRef<UnlistenFn[]>([]);
 
   // Connect and subscribe to events
   useEffect(() => {
-    if (!email || !serverId) return
+    if (!email || !serverId) return;
 
-    let cancelled = false
+    let cancelled = false;
 
     const setup = async () => {
       try {
         // Connect WebSocket
-        await invoke("ws_connect", { email, serverId })
+        await invoke("ws_connect", { email, serverId });
 
         if (cancelled) {
-          await invoke("ws_disconnect", { serverId }).catch(() => {})
-          return
+          await invoke("ws_disconnect", { serverId }).catch(() => {});
+          return;
         }
 
         // Listen for connection events
-        const unlistenConnected = await listen<WsConnectionEvent>(
-          "ws:connected",
-          (event) => {
-            if (event.payload.server_id === serverId) {
-              setConnected(true)
-              setFailed(false)
-            }
+        const unlistenConnected = await listen<WsConnectionEvent>("ws:connected", (event) => {
+          if (event.payload.server_id === serverId) {
+            setConnected(true);
+            setFailed(false);
           }
-        )
+        });
 
-        const unlistenDisconnected = await listen<WsConnectionEvent>(
-          "ws:disconnected",
-          (event) => {
-            if (event.payload.server_id === serverId) {
-              setConnected(false)
-            }
+        const unlistenDisconnected = await listen<WsConnectionEvent>("ws:disconnected", (event) => {
+          if (event.payload.server_id === serverId) {
+            setConnected(false);
           }
-        )
+        });
 
         // Listen for status updates (contains full server data)
-        const unlistenStatus = await listen<WsStatusEvent>(
-          "ws:status",
-          (event) => {
-            if (event.payload.server_id === serverId) {
-              const parsed = parseServerData(event.payload.status)
-              if (parsed) {
-                setServerData(parsed)
-              }
+        const unlistenStatus = await listen<WsStatusEvent>("ws:status", (event) => {
+          if (event.payload.server_id === serverId) {
+            const parsed = parseServerData(event.payload.status);
+            if (parsed) {
+              setServerData(parsed);
             }
           }
-        )
+        });
 
         // Listen for console lines
-        const unlistenConsole = await listen<WsConsoleEvent>(
-          "ws:console",
-          (event) => {
-            if (event.payload.server_id === serverId) {
-              setConsoleLines((prev) => {
-                const next = [...prev, event.payload.line]
-                return next.length > MAX_CONSOLE_LINES
-                  ? next.slice(next.length - MAX_CONSOLE_LINES)
-                  : next
-              })
-            }
+        const unlistenConsole = await listen<WsConsoleEvent>("ws:console", (event) => {
+          if (event.payload.server_id === serverId) {
+            setConsoleLines((prev) => {
+              const next = [...prev, event.payload.line];
+              return next.length > MAX_CONSOLE_LINES
+                ? next.slice(next.length - MAX_CONSOLE_LINES)
+                : next;
+            });
           }
-        )
+        });
 
         // Listen for stats (merges memory + tick data instead of replacing)
-        const unlistenStats = await listen<WsStatsEvent>(
-          "ws:stats",
-          (event) => {
-            if (event.payload.server_id === serverId) {
-              setStats((prev) => {
-                const next = { ...(prev ?? {}) }
-                const data = event.payload.data
-                if ("memory" in data) {
-                  next.memory = data.memory
-                }
-                if ("usage" in data) {
-                  // heap stream — single usage field
-                  next.heapUsage = data.usage
-                }
-                if ("tps" in data) {
-                  next.tps = data.tps
-                }
-                if ("averageTickTime" in data) {
-                  next.averageTickTime = data.averageTickTime
-                }
-                return next
-              })
-            }
+        const unlistenStats = await listen<WsStatsEvent>("ws:stats", (event) => {
+          if (event.payload.server_id === serverId) {
+            setStats((prev) => {
+              const next = { ...(prev ?? {}) };
+              const data = event.payload.data;
+              if ("memory" in data) {
+                next.memory = data.memory;
+              }
+              if ("usage" in data) {
+                // heap stream — single usage field
+                next.heapUsage = data.usage;
+              }
+              if ("tps" in data) {
+                next.tps = data.tps;
+              }
+              if ("averageTickTime" in data) {
+                next.averageTickTime = data.averageTickTime;
+              }
+              return next;
+            });
           }
-        )
+        });
 
         if (!cancelled) {
-          setConnected(true)
-          setFailed(false)
+          setConnected(true);
+          setFailed(false);
           unlistenRefs.current = [
             unlistenConnected,
             unlistenDisconnected,
             unlistenStatus,
             unlistenConsole,
             unlistenStats,
-          ]
+          ];
         } else {
-          unlistenConnected()
-          unlistenDisconnected()
-          unlistenStatus()
-          unlistenConsole()
-          unlistenStats()
+          unlistenConnected();
+          unlistenDisconnected();
+          unlistenStatus();
+          unlistenConsole();
+          unlistenStats();
         }
       } catch (err) {
-        console.error("WS connect failed:", err)
+        console.error("WS connect failed:", err);
         if (!cancelled) {
-          setFailed(true)
-          setConnected(false)
+          setFailed(true);
+          setConnected(false);
         }
       }
-    }
+    };
 
-    setup()
+    setup();
 
     return () => {
-      cancelled = true
+      cancelled = true;
       for (const unlisten of unlistenRefs.current) {
-        unlisten()
+        unlisten();
       }
-      unlistenRefs.current = []
-      invoke("ws_disconnect", { serverId }).catch(() => {})
-      setConnected(false)
-      setServerData(null)
-      setConsoleLines([])
-      setStats(null)
-    }
-  }, [email, serverId])
+      unlistenRefs.current = [];
+      invoke("ws_disconnect", { serverId }).catch(() => {});
+      setConnected(false);
+      setServerData(null);
+      setConsoleLines([]);
+      setStats(null);
+    };
+  }, [email, serverId]);
 
   const sendCommand = useCallback(
     async (command: string) => {
-      if (!serverId) return
-      await invoke("ws_send_command", { serverId, command })
+      if (!serverId) return;
+      await invoke("ws_send_command", { serverId, command });
     },
-    [serverId]
-  )
+    [serverId],
+  );
 
   const subscribe = useCallback(
     async (stream: string) => {
-      if (!serverId) return
-      await invoke("ws_subscribe", { serverId, stream })
+      if (!serverId) return;
+      await invoke("ws_subscribe", { serverId, stream });
     },
-    [serverId]
-  )
+    [serverId],
+  );
 
   const unsubscribe = useCallback(
     async (stream: string) => {
-      if (!serverId) return
-      await invoke("ws_unsubscribe", { serverId, stream })
+      if (!serverId) return;
+      await invoke("ws_unsubscribe", { serverId, stream });
     },
-    [serverId]
-  )
+    [serverId],
+  );
 
   return {
     connected,
@@ -258,5 +240,5 @@ export function useServerWs(
     sendCommand,
     subscribe,
     unsubscribe,
-  }
+  };
 }

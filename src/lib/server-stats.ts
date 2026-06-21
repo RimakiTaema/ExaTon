@@ -9,10 +9,36 @@ export type StatsPoint = {
 export const MAX_STATS_POINTS = 30;
 
 export const BEDROCK_IDS = ["bedrock", "pocketmine", "nukkit"];
+export const JAVA_IDS = [
+  "vanilla",
+  "spigot",
+  "paper",
+  "purpur",
+  "forge",
+  "neoforge",
+  "fabric",
+  "quilt",
+  "craftbukkit",
+  "mohist",
+  "magma",
+  "arclight",
+];
 
-export function isBedrock(softwareId: string | undefined): boolean {
-  if (!softwareId) return false;
-  return BEDROCK_IDS.includes(softwareId.toLowerCase());
+export function isBedrock(
+  softwareName: string | undefined,
+  _version?: string | undefined,
+): boolean {
+  if (!softwareName) return false;
+  const nameLower = softwareName.toLowerCase();
+
+  if (BEDROCK_IDS.includes(nameLower)) {
+    return true;
+  }
+  if (JAVA_IDS.includes(nameLower)) {
+    return false;
+  }
+
+  return false;
 }
 
 export function nowTimeLabel(): string {

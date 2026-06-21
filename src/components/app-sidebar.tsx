@@ -4,7 +4,6 @@ import {
   ArrowLeftIcon,
   ArrowSquareOutIcon,
   ArrowsClockwiseIcon,
-  BugIcon,
   ClockIcon,
   CubeIcon,
   DoorOpenIcon,
@@ -61,13 +60,6 @@ type Account = {
 const mainNavItems = [
   { title: "Home", href: "/home", icon: HouseIcon, className: "" },
   { title: "Servers", href: "/home/servers", icon: CubeIcon, className: "" },
-  {
-    title: "Debug Option",
-    href: "/home/debug",
-    icon: BugIcon,
-    className:
-      "text-red-500 hover:bg-red-50 hover:text-red-600 data-[active=true]:bg-red-50 data-[active=true]:text-red-600",
-  },
 ];
 
 const serverNavItems = (serverId: string) => [
