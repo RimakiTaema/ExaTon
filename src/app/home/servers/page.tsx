@@ -30,6 +30,7 @@ import { useServerWs } from "@/hooks/use-server-ws";
 import { useStatsHistory } from "@/hooks/use-stats-history";
 import { recordDebugEvent } from "@/lib/debug-log";
 import { useLayoutCtx } from "@/lib/layout-context";
+import { type LayoutMode, loadLayoutMode } from "@/lib/display-prefs";
 import { rememberRecentServer } from "@/lib/recent-servers";
 
 export default function ServerPage() {
@@ -37,8 +38,16 @@ export default function ServerPage() {
   const router = useRouter();
   const id = searchParams.get("id");
   const tab = searchParams.get("tab") ?? "overview";
-  const account = useAccount();
+  const { account } = useAccount();
   const { setIsServerDetail } = useLayoutCtx();
+  const [layout, setLayout] = useState<LayoutMode | null>(null);
+
+  useEffect(() => {
+    setLayout(loadLayoutMode());
+    const handleChange = () => setLayout(loadLayoutMode());
+    window.addEventListener("layout-mode-changed", handleChange);
+    return () => window.removeEventListener("layout-mode-changed", handleChange);
+  }, []);
 
   const [servers, setServers] = useState<ServerData[]>([]);
   const [restServer, setRestServer] = useState<ServerData | null>(null);
@@ -123,9 +132,9 @@ export default function ServerPage() {
 
   useEffect(() => {
     if (!ws.connected || !id || tab !== "console") return;
-    ws.subscribe("console");
+    ws.subscribe("console").catch(() => {});
     return () => {
-      ws.unsubscribe("console");
+      ws.unsubscribe("console").catch(() => {});
     };
   }, [ws.connected, ws.subscribe, ws.unsubscribe, id, tab]);
 
@@ -144,11 +153,11 @@ export default function ServerPage() {
 
   useEffect(() => {
     if (!ws.connected || !id || tab !== "overview") return;
-    ws.subscribe("stats");
-    ws.subscribe("tick");
+    ws.subscribe("stats").catch(() => {});
+    ws.subscribe("tick").catch(() => {});
     return () => {
-      ws.unsubscribe("stats");
-      ws.unsubscribe("tick");
+      ws.unsubscribe("stats").catch(() => {});
+      ws.unsubscribe("tick").catch(() => {});
     };
   }, [ws.connected, ws.subscribe, ws.unsubscribe, id, tab]);
 
@@ -195,68 +204,85 @@ export default function ServerPage() {
         {error && !server && <p className="px-2 py-2 text-sm text-red-600">{error}</p>}
         {server && account && (
           <>
-            {/* Pterodactyl-style server info bar */}
-            <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-2.5">
-              <button
-                type="button"
-                onClick={() => router.push("/home/servers")}
-                className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                title="Back to servers"
-              >
-                <ArrowLeftIcon size={16} />
-              </button>
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className={`h-2.5 w-2.5 shrink-0 rounded-full ${STATUS_MAP[server.status]?.dot ?? "bg-gray-400"} ${server.status === 1 ? "animate-pulse" : ""}`}
-                />
-                <span className="text-sm font-semibold truncate">{server.name}</span>
-              </div>
-              <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground ml-2">
-                <span className="flex items-center gap-1">
-                  <UsersIcon size={13} />
-                  {server.players?.count ?? 0}/{server.players?.max ?? 0}
+            {layout !== "sidebar" && (
+              <>
+                {/* Pterodactyl-style server info bar */}
+                <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => router.push("/home/servers")}
+                    className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    title="Back to servers"
+                  >
+                    <ArrowLeftIcon size={16} />
+                  </button>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${STATUS_MAP[server.status]?.dot ?? "bg-gray-400"} ${server.status === 1 ? "animate-pulse" : ""}`}
+                    />
+                    <span className="text-sm font-semibold truncate">{server.name}</span>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground ml-2">
+                    <span className="flex items-center gap-1">
+                      <UsersIcon size={13} />
+                      {server.players?.count ?? 0}/{server.players?.max ?? 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <GlobeIcon size={13} />
+                      {server.address || "—"}
+                    </span>
+                    {server.software?.name && (
+                      <span className="flex items-center gap-1">
+                        <CubeIcon size={13} />
+                        {server.software.name} {server.software.version ?? ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    {ws.connected ? (
+                      <WifiHighIcon size={15} className="text-emerald-600" />
+                    ) : (
+                      <WifiSlashIcon size={15} className="text-muted-foreground" />
+                    )}
+                    {server.shared && (
+                      <span title="Shared server">
+                        <ShareNetworkIcon size={14} className="text-muted-foreground" />
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {/* Inline tab navigation */}
+                <div className="flex flex-wrap gap-1 border-b border-border px-4">
+                  {TABS.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => router.push(`/home/servers?id=${id}&tab=${key}`)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-t-md border border-b-0 transition-colors cursor-pointer ${
+                        tab === key
+                          ? "bg-card text-foreground border-border"
+                          : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/50"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            {layout === "sidebar" && (
+              <div className="flex flex-col gap-0.5 px-4 pt-1">
+                <span className="text-base font-bold truncate">{server.name}</span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  {ws.connected ? (
+                    <WifiHighIcon size={13} className="text-emerald-600" />
+                  ) : (
+                    <WifiSlashIcon size={13} className="text-muted-foreground" />
+                  )}
+                  {ws.connected ? "Connected" : "Disconnected"}
                 </span>
-                <span className="flex items-center gap-1">
-                  <GlobeIcon size={13} />
-                  {server.address || "—"}
-                </span>
-                {server.software?.name && (
-                  <span className="flex items-center gap-1">
-                    <CubeIcon size={13} />
-                    {server.software.name} {server.software.version ?? ""}
-                  </span>
-                )}
               </div>
-              <div className="ml-auto flex items-center gap-2">
-                {ws.connected ? (
-                  <WifiHighIcon size={15} className="text-emerald-600" />
-                ) : (
-                  <WifiSlashIcon size={15} className="text-muted-foreground" />
-                )}
-                {server.shared && (
-                  <span title="Shared server">
-                    <ShareNetworkIcon size={14} className="text-muted-foreground" />
-                  </span>
-                )}
-              </div>
-            </div>
-            {/* Inline tab navigation */}
-            <div className="flex flex-wrap gap-1 border-b border-border px-4">
-              {TABS.map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => router.push(`/home/servers?id=${id}&tab=${key}`)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-t-md border border-b-0 transition-colors cursor-pointer ${
-                    tab === key
-                      ? "bg-card text-foreground border-border"
-                      : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/50"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            )}
             <div className="px-4 pb-4">
               <div ref={tabContentRef} key={tab}>
                 {tab === "overview" && (

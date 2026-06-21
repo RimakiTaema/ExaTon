@@ -1,7 +1,10 @@
 mod exaton_api_lib;
 
 use exaton_api_lib::websocket::WsState;
+use std::time::Duration;
 use tauri::Manager;
+use tauri_plugin_dialog::DialogExt;
+use tokio::net::TcpStream;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -73,6 +76,39 @@ pub fn run() {
                 // Start server init last
                 if let Err(e) = exaton_api_lib::servers::init().await {
                     log::error!("servers init failed: {e}");
+                }
+
+                // Dev server watchdog (debug only) — TCP health check every 5s
+                #[cfg(debug_assertions)]
+                {
+                    let h = app_handle.clone();
+                    tauri::async_runtime::spawn(async move {
+                        let mut failures = 0u32;
+                        loop {
+                            tokio::time::sleep(Duration::from_secs(5)).await;
+                            match TcpStream::connect("127.0.0.1:3000").await {
+                                Ok(_) => failures = 0,
+                                Err(_) => failures += 1,
+                            }
+                            if failures >= 3 {
+                                failures = 0;
+                                let h2 = h.clone();
+                                h.dialog()
+                                    .message("The Next.js development server has stopped responding.\n\nClick OK to reload the app, or Cancel to close it.")
+                                    .title("Server Crashed")
+                                    .kind(tauri_plugin_dialog::MessageDialogKind::Error)
+                                    .show(move |ok| {
+                                        if ok {
+                                            if let Some(window) = h2.get_webview_window("main") {
+                                                let _ = window.eval("window.location.reload()");
+                                            }
+                                        } else {
+                                            h2.exit(1);
+                                        }
+                                    });
+                            }
+                        }
+                    });
                 }
             });
 

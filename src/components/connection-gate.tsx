@@ -1,12 +1,14 @@
 "use client";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { ErrorReporterProvider } from "@/components/error-handler";
 import { useApiProbe } from "@/hooks/use-api-probe";
 
 export function ConnectionGate({ children }: { children: ReactNode }) {
   const { status, error, retry } = useApiProbe();
 
-  if (status === "online") return <>{children}</>;
+  if (status === "online")
+    return <ErrorReporterProvider>{children}</ErrorReporterProvider>;
 
   return (
     <div className="flex h-screen items-center justify-center">

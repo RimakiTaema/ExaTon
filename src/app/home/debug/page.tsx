@@ -7,11 +7,14 @@ import {
   DoorOpenIcon,
   PlugsConnectedIcon,
   TrashIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useErrorReporter } from "@/components/error-handler";
 import { probeApi } from "@/lib/api-probe";
 import { APP_VERSION } from "@/lib/app-info";
 import {
@@ -29,6 +32,10 @@ type Account = {
   credits: number;
 };
 
+type LevelFilter = "all" | "error" | "warn" | "info";
+
+const LEVEL_FILTERS: LevelFilter[] = ["all", "error", "warn", "info"];
+
 export default function DebugPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
@@ -36,11 +43,18 @@ export default function DebugPage() {
   const [recent, setRecent] = useState<RecentServer[]>([]);
   const [probeState, setProbeState] = useState("Idle");
   const [copyState, setCopyState] = useState("");
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
   const router = useRouter();
+  const { reportError } = useErrorReporter();
 
   const selectedAccount = useMemo(
     () => accounts.find((account) => account.email === selectedEmail) ?? null,
     [accounts, selectedEmail],
+  );
+
+  const filteredEvents = useMemo(
+    () => (levelFilter === "all" ? events : events.filter((e) => e.level === levelFilter)),
+    [events, levelFilter],
   );
 
   const reloadState = useCallback(() => {
@@ -51,6 +65,7 @@ export default function DebugPage() {
       setAccounts(nextAccounts);
       setRecent(loadRecentServers(nextSelected));
       setEvents(loadDebugEvents());
+      setCopyState("");
     } catch (error) {
       recordDebugEvent({
         level: "error",
@@ -118,9 +133,42 @@ export default function DebugPage() {
     setCopyState("Copied diagnostics.");
   };
 
+  const simulateError = () => {
+    reportError("This is a simulated error from the debug page", () => {
+      reportError("Retry attempted — error cleared");
+    });
+    recordDebugEvent({ scope: "debug", message: "Simulated error triggered" });
+  };
+
+  const simulateCrash = () => {
+    recordDebugEvent({ scope: "debug", message: "Simulated fatal crash triggered" });
+    throw new Error("Simulated fatal crash from debug page");
+  };
+
+  const toggleDarkMode = () => {
+    const html = document.documentElement;
+    const isDark = html.classList.contains("dark");
+    html.classList.toggle("dark");
+    localStorage.setItem("exaton_dark_mode", isDark ? "false" : "true");
+    recordDebugEvent({
+      scope: "debug",
+      message: `Dark mode ${isDark ? "disabled" : "enabled"}`,
+    });
+  };
+
+  const clearAllData = () => {
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith("exaton_"));
+    keys.forEach((k) => localStorage.removeItem(k));
+    recordDebugEvent({ scope: "debug", message: `Cleared ${keys.length} localStorage keys` });
+    reloadState();
+  };
+
+  const targetName = recent.length > 0 ? recent[0].name : "—";
+
   return (
     <PageTransition>
-      <div className="flex max-w-5xl flex-col gap-4 px-2 py-2">
+      <div className="flex max-w-6xl flex-col gap-4 px-2 py-2">
+        {/* Header */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-md bg-red-50 text-red-600">
             <BugIcon size={20} />
@@ -135,105 +183,163 @@ export default function DebugPage() {
           </Button>
         </div>
 
+        {/* Action bar */}
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             <ArrowsClockwiseIcon size={14} />
-            Reload
+            Reload App
           </Button>
-          <Button variant="outline" onClick={() => router.push("/")}>
+          <Button variant="outline" size="sm" onClick={() => router.push("/home")}>
             <DoorOpenIcon size={14} />
-            Main Menu
+            Home
           </Button>
-          <Button variant="outline" onClick={() => runProbe(false)}>
-            <PlugsConnectedIcon size={14} />
-            Probe API
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => runProbe(true)}
-            disabled={!selectedAccount || recent.length === 0}
-          >
-            <PlugsConnectedIcon size={14} />
-            Probe Auth
-          </Button>
-          <Button variant="outline" onClick={copyReport}>
+          <Button variant="outline" size="sm" onClick={copyReport}>
             <ClipboardTextIcon size={14} />
-            Copy
+            Copy Report
           </Button>
-          <Button variant="destructive" onClick={clearEvents}>
-            <TrashIcon size={14} />
-            Clear Events
-          </Button>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <section className="rounded-md border p-3">
-            <p className="mb-3 text-sm font-medium">State</p>
-            <div className="flex flex-col gap-2 text-sm">
-              <Row label="Selected" value={selectedAccount?.email ?? "None"} />
-              <Row label="Accounts" value={String(accounts.length)} />
-              <Row label="Recent Servers" value={String(recent.length)} />
-              <Row label="Probe" value={probeState} />
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={clearRecent}
-              disabled={recent.length === 0}
-            >
-              Clear Recent Servers
-            </Button>
-          </section>
-
-          <section className="rounded-md border p-3">
-            <p className="mb-3 text-sm font-medium">Recent Servers</p>
-            {recent.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No recent server visits saved.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {recent.slice(0, 6).map((server) => (
-                  <div key={`${server.accountEmail}:${server.id}`} className="text-sm">
-                    <p className="truncate font-medium">{server.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {server.address || server.id}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
         </div>
 
         {copyState && <p className="text-sm text-emerald-700">{copyState}</p>}
 
-        <section className="rounded-md border">
-          <div className="flex items-center justify-between border-b px-3 py-2">
-            <p className="text-sm font-medium">Event Log</p>
-            <p className="text-xs text-muted-foreground">{events.length} events</p>
-          </div>
-          {events.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-muted-foreground">No debug events yet.</p>
-          ) : (
-            <div className="max-h-[48vh] overflow-auto">
-              {events.map((event) => (
-                <div key={event.id} className="border-b px-3 py-2 last:border-b-0">
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span>{new Date(event.ts).toLocaleTimeString()}</span>
-                    <span className={levelClass(event.level)}>{event.level}</span>
-                    <span>{event.scope}</span>
-                  </div>
-                  <p className="mt-1 text-sm">{event.message}</p>
-                  {event.detail && (
-                    <pre className="mt-1 max-h-20 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted p-2 text-xs">
-                      {event.detail}
-                    </pre>
-                  )}
+        {/* Category cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* API */}
+          <Card>
+            <CardHeader>
+              <CardTitle>API</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Row label="Status" value={probeState} />
+              <Row label="Target" value={targetName} />
+              <div className="flex flex-wrap gap-2 mt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => runProbe(false)}
+                >
+                  <PlugsConnectedIcon size={14} />
+                  Probe API
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => runProbe(true)}
+                  disabled={!selectedAccount || recent.length === 0}
+                >
+                  <PlugsConnectedIcon size={14} />
+                  Probe Auth
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Info</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Row label="Version" value={APP_VERSION} />
+              <Row label="Account" value={selectedAccount?.email ?? "None"} />
+              <Row label="Accounts" value={String(accounts.length)} />
+              <Row label="Recent" value={String(recent.length)} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearRecent}
+                disabled={recent.length === 0}
+              >
+                <TrashIcon size={14} />
+                Clear Recent
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Event Log */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Event Log
+                <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                  {events.length}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              {/* Level filter tabs */}
+              <div className="flex gap-1">
+                {LEVEL_FILTERS.map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setLevelFilter(f)}
+                    className={`rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer ${
+                      levelFilter === f
+                        ? "bg-foreground/10 text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              {/* Event list */}
+              {filteredEvents.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  No {levelFilter === "all" ? "" : `${levelFilter} `}events.
+                </p>
+              ) : (
+                <div className="max-h-60 overflow-auto rounded-md border">
+                  {filteredEvents.map((event) => (
+                    <div key={event.id} className="border-b px-3 py-2 last:border-b-0">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span>{new Date(event.ts).toLocaleTimeString()}</span>
+                        <span className={levelClass(event.level)}>{event.level}</span>
+                        <span>{event.scope}</span>
+                      </div>
+                      <p className="mt-0.5 text-sm">{event.message}</p>
+                      {event.detail && (
+                        <pre className="mt-1 max-h-16 overflow-auto whitespace-pre-wrap break-words rounded bg-muted p-1.5 text-xs">
+                          {event.detail}
+                        </pre>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              <Button variant="outline" size="sm" onClick={clearEvents}>
+                <TrashIcon size={14} />
+                Clear Events
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Developer Tools */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Developer Tools</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={simulateError}>
+                <WarningCircleIcon size={14} />
+                Simulate Error
+              </Button>
+              <Button variant="destructive" size="sm" onClick={simulateCrash}>
+                <WarningCircleIcon size={14} />
+                Simulate Fatal Crash
+              </Button>
+              <Button variant="outline" size="sm" onClick={toggleDarkMode}>
+                Toggle Dark Mode
+              </Button>
+              <Button variant="destructive" size="sm" onClick={clearAllData}>
+                <TrashIcon size={14} />
+                Clear All Local Data
+              </Button>
             </div>
-          )}
-        </section>
+          </CardContent>
+        </Card>
       </div>
     </PageTransition>
   );
@@ -242,8 +348,8 @@ export default function DebugPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="min-w-0 truncate text-right font-medium">{value}</span>
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="min-w-0 truncate text-right text-sm font-medium">{value}</span>
     </div>
   );
 }

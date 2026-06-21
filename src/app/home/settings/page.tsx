@@ -42,7 +42,7 @@ const DISPLAY_OPTIONS: { value: CreditDisplay; label: string; hint: string }[] =
 ];
 
 export default function SettingPage() {
-  const account = useAccount();
+  const { account } = useAccount();
   const router = useRouter();
   const [summary, setSummary] = useState<CachedAccountSummary | null>(null);
   const [displayMode, setDisplayMode] = useState<CreditDisplay>("both");
@@ -143,7 +143,16 @@ export default function SettingPage() {
                 label="Personal Credits"
                 value={`${(summary?.personalCredits ?? account.credits).toFixed(2)} cr`}
               />
-              <Row label="Pool Credits" value={`${(summary?.poolCredits ?? 0).toFixed(2)} cr`} />
+              <Row
+                label="Pool Credits"
+                value={
+                  summary
+                    ? summary.poolCredits === 0
+                      ? "—"
+                      : `${summary.poolCredits.toFixed(2)} cr`
+                    : "—"
+                }
+              />
               {summary && <Row label="Updated" value={formatAgo(summary.updatedAt)} />}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
