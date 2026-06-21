@@ -10,8 +10,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { type CachedAccountSummary, loadCachedSummary } from "@/lib/account-summary";
+import { type CachedAccountSummary, loadCachedSummary, refreshAccountSummary, saveCachedSummary } from "@/lib/account-summary";
+import { useErrorReporter } from "@/components/error-handler";
 import { recordDebugEvent } from "@/lib/debug-log";
+import { getServerRam } from "@/lib/server-details";
 
 type Props = {
   email: string;
@@ -21,17 +23,26 @@ type Props = {
 };
 
 export function ServerControls({ email, serverid, status, shared }: Props) {
+  const { reportError, notify } = useErrorReporter();
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPaymentPrompt, setShowPaymentPrompt] = useState<boolean>(false);
   const [creditSummary, setCreditSummary] = useState<CachedAccountSummary | null>(null);
+  const [ram, setRam] = useState<number | null>(null);
+  const [confirmUseCredits, setConfirmUseCredits] = useState(false);
 
   useEffect(() => {
     if (showPaymentPrompt) {
       setCreditSummary(loadCachedSummary(email));
+      refreshAccountSummary(email)
+        .then((fresh) => setCreditSummary(saveCachedSummary(fresh)))
+        .catch(() => {});
+      getServerRam({ email, serverid })
+        .then((res) => setRam(res?.ram ?? null))
+        .catch(() => {});
     }
-  }, [showPaymentPrompt, email]);
+  }, [showPaymentPrompt, email, serverid]);
 
   const call = async (action: string) => {
     setBusyAction(action);
@@ -40,9 +51,12 @@ export function ServerControls({ email, serverid, status, shared }: Props) {
     recordDebugEvent({ scope: "actions", message: `${action} requested`, detail: { serverid } });
     try {
       await invoke(action, { email, serverid });
+      const actionLabel = action.replace("_server_action", "").replace("_", " ");
+      notify(`${actionLabel} action sent`, "success");
       setMessage("Action sent.");
       recordDebugEvent({ scope: "actions", message: `${action} succeeded`, detail: { serverid } });
     } catch (err) {
+      reportError(`${action.replace("_server_action", "").replace("_", " ")} failed`);
       setError(String(err));
       recordDebugEvent({
         level: "error",
@@ -70,7 +84,8 @@ export function ServerControls({ email, serverid, status, shared }: Props) {
         serverid,
         useOwnCredits,
       });
-      setMessage("Action sent.");
+      notify(ram ? `Server started — ~${ram} cr/hr` : "Server started", "success");
+      setMessage(ram ? `~${ram} cr/hr will be deducted from your credits.` : "Action sent.");
       recordDebugEvent({
         scope: "actions",
         message: `start_server_action succeeded`,
@@ -163,21 +178,58 @@ export function ServerControls({ email, serverid, status, shared }: Props) {
                   Pool
                 </span>
                 <span className="font-semibold">
-                  {(creditSummary?.poolCredits ?? 0).toFixed(2)} cr
+                  {creditSummary
+                    ? creditSummary.poolCredits === 0
+                      ? "—"
+                      : `${creditSummary.poolCredits.toFixed(2)} cr`
+                    : "—"}
                 </span>
               </div>
             </div>
+            {ram !== null && (
+              <div className="rounded-md bg-zinc-50 dark:bg-zinc-800/50 px-3 py-2">
+                <p className="text-xs text-muted-foreground">
+                  Estimated cost: <span className="font-semibold text-foreground">{ram} cr/hr</span>
+                  {" "}({ram} GB RAM)
+                </p>
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <Button
-                onClick={() => {
-                  setShowPaymentPrompt(false);
-                  startServer(false);
-                }}
+                onClick={() => setConfirmUseCredits(true)}
                 className="w-full justify-center text-sm font-medium border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
                 variant="outline"
               >
                 Use Server Credits
               </Button>
+              {confirmUseCredits && (
+                <div className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-3 py-2.5">
+                  <p className="text-xs text-amber-800 dark:text-amber-300">
+                    Credit amount is unknown. Make sure in pool you didn't know have enough credit.
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setConfirmUseCredits(false);
+                        setShowPaymentPrompt(false);
+                        startServer(false);
+                      }}
+                    >
+                      Yes, Use Credits
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="cursor-pointer"
+                      onClick={() => setConfirmUseCredits(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
               <Button
                 onClick={() => {
                   setShowPaymentPrompt(false);

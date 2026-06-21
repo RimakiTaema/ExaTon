@@ -9,7 +9,7 @@ import { type LayoutMode, loadLayoutMode } from "@/lib/display-prefs";
 import { LayoutCtx } from "@/lib/layout-context";
 
 function HomeLayoutInner({ children }: { children: React.ReactNode }) {
-  const [layout, setLayout] = useState<LayoutMode>("topbar");
+  const [layout, setLayout] = useState<LayoutMode | null>(null);
   const [isServerDetail, setIsServerDetail] = useState(false);
 
   useEffect(() => {
@@ -19,42 +19,28 @@ function HomeLayoutInner({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("layout-mode-changed", handleChange);
   }, []);
 
-  // Server detail: pure content, no sidebar/topbar — self-contained with inline tabs
-  if (isServerDetail) {
-    return (
-      <LayoutCtx.Provider value={{ isServerDetail, setIsServerDetail }}>
-        <main className="flex-1 min-w-0">
-          <Suspense>
-            <PageTransition>{children}</PageTransition>
-          </Suspense>
-        </main>
-      </LayoutCtx.Provider>
-    );
-  }
-
-  // Non-server pages: sidebar or topbar
   return (
     <LayoutCtx.Provider value={{ isServerDetail, setIsServerDetail }}>
-      {layout === "topbar" ? (
-        <div className="flex flex-col w-full">
-          <TopBar />
-          <main className="flex-1">
+      {layout === "sidebar" ? (
+        <div className="flex w-full min-h-svh">
+          <SidebarProvider>
+            <AppSidebar />
+            <main className="flex-1 min-w-0">
+              <Suspense>
+                <PageTransition>{children}</PageTransition>
+              </Suspense>
+            </main>
+          </SidebarProvider>
+        </div>
+      ) : (
+        <div className="flex flex-col w-full min-h-svh">
+          {layout !== null && !isServerDetail && <TopBar />}
+          <main className="flex-1 min-w-0 min-h-svh">
             <Suspense>
               <PageTransition>{children}</PageTransition>
             </Suspense>
           </main>
         </div>
-      ) : (
-        <SidebarProvider>
-          <Suspense>
-            <AppSidebar />
-          </Suspense>
-          <main className="flex-1">
-            <Suspense>
-              <PageTransition>{children}</PageTransition>
-            </Suspense>
-          </main>
-        </SidebarProvider>
       )}
     </LayoutCtx.Provider>
   );
