@@ -7,8 +7,8 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] Windows Release
 - [x] MacOS Release
 - [x] Linux Release
-- [ ] Android Release
-- [ ] iOS Release
+- [ ] Android Release (Soon In 1.5.1)
+- [ ] iOS Release (No)
 
 ## Features
 
