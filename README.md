@@ -2,7 +2,7 @@
 
 The Exaroton Server Control GUI App For Control Server Without Entering Website
 (Some Feature Might Need Website For Management)
-> [!INFO]
+> [!WARNING]
 > This Branch Was AI Assisted Please Keep In Mind that all bug caused by AI And My Bad Prompt Some AI Bug is fixable
 
 ## Major Goal
