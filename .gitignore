@@ -1,0 +1,35 @@
+# Build artifacts
+build/
+Build/
+out/
+cmake-build-*/
+bin/
+obj/
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# CMake / generated files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+
+# IDE / editor files
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
