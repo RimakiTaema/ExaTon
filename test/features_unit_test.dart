@@ -281,6 +281,10 @@ void main() {
 
   test('app_info matches the version in pubspec.yaml', () {
     final line = File('pubspec.yaml').readAsLinesSync().firstWhere((l) => l.startsWith('version:'));
-    expect(line.split(':').last.trim(), '$appVersionName+$appVersionCode');
+    // The build number after "+" is optional; releases set it from CI.
+    final version = line.split(':').last.trim();
+    final [name, ...code] = version.split('+');
+    expect(name, appVersionName);
+    if (code.isNotEmpty) expect(int.parse(code.single), appVersionCode);
   });
 }

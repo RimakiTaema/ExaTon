@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/native.dart';
+import 'package:exaton/app/app_info.dart';
 import 'package:exaton/core/storage/account_store.dart';
 import 'package:exaton/core/storage/database.dart';
 import 'package:exaton/features/accounts/accounts.dart';
@@ -471,11 +472,11 @@ void main() {
     expect(mutating(), isEmpty);
 
     await tester.scrollUntilVisible(
-      find.text('1.0.0 (build 1)'),
+      find.text('$appVersionName (build $appVersionCode)'),
       200,
       scrollable: find.descendant(of: find.byType(DebugScreen), matching: find.byType(Scrollable)).first,
     );
-    expect(find.text('1.0.0 (build 1)'), findsOneWidget);
+    expect(find.text('$appVersionName (build $appVersionCode)'), findsOneWidget);
     await unmount(tester);
   });
 }
