@@ -1,9 +1,9 @@
 name: CI
 
 on:
+  # Branch pushes only; version tags run release.yml instead.
   push:
     branches: ["**"]
-    tags-ignore: ["v*"]
   pull_request:
   workflow_dispatch:
 

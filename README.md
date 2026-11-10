@@ -60,6 +60,16 @@ No code generation step: drift is used through its SQL API.
 - Test fixtures in `test/fixtures` are written by hand in the shape of
   `openapi.yaml`, not captured from a live account.
 
+## Desktop install
+
+Download from the [Releases](../../releases) page:
+
+| Platform | File | Notes |
+| --- | --- | --- |
+| Windows 10/11 (x64) | `ExaTon-<version>-windows-x64.zip` | Unzip and run `ExaTon\exaton.exe`. SmartScreen may say *Windows protected your PC*: choose *More info* → *Run anyway*. The app is not code-signed. |
+| macOS 11+ (Apple silicon and Intel) | `ExaTon-<version>-macos.dmg` | Drag ExaTon to Applications. The app is not notarized, so the first time right-click it → *Open* → *Open*, or allow it under *System Settings → Privacy & Security*. |
+| Linux (x64) | `ExaTon-<version>-linux-x64.tar.gz` | Extract and run `ExaTon/exaton`. Needs GTK 3 and libsecret with a keyring such as GNOME Keyring or KWallet (`sudo apt install libgtk-3-0 libsecret-1-0`). |
+
 ## Android install
 
 Download `ExaTon-<version>.apk` from the [Releases](../../releases) page and
@@ -91,9 +101,12 @@ sideloaded app.
 
 ## Release signing (maintainer)
 
-Releases are built by `.github/workflows/release.yml` when a `v*` tag is
-pushed. The workflow fails, instead of publishing a debug-signed APK, until
-these four repository secrets exist.
+Releases are built by `.github/workflows/release.yml` when a version tag is
+pushed: `v1.6.0` or `1.6.0`, optionally with a suffix such as `-beta.1`
+(published as a pre-release). It builds Android, Windows, macOS and Linux and
+puts them in one GitHub release. *Actions → Release → Run workflow* builds
+everything without publishing. The workflow fails, instead of publishing a
+debug-signed APK, until these four repository secrets exist.
 
 **1. Create the key once** (skip if you already have
 `exatonext-release.jks`). Keep the file and passwords backed up: a lost key
@@ -136,8 +149,11 @@ Or add them under *Settings → Secrets and variables → Actions*. On Linux use
 then:
 
 ```sh
-git tag v1.6.0 && git push origin v1.6.0
+git tag v1.6.0 && git push origin v1.6.0     # or 1.6.0, v1.6.0-beta.1
 ```
+
+The x.y.z in the tag must match `version:` in `pubspec.yaml`, or the release
+stops before building.
 
 **5. Developer verification.** To clear the "unverified developer" block,
 register on the [Android Developer Console](https://developer.android.com/developer-verification)
