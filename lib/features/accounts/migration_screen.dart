@@ -9,8 +9,8 @@ import '../../ui/tokens.dart';
 import 'migration.dart';
 import '../../ui/app_icons.dart';
 
-/// Asks once whether to bring 1.5 logins into 1.6. Each account is checked
-/// with exaroton before it is saved; 1.5's own entries are left as they are.
+/// Asks once whether to bring 1.3 logins into 1.6. Each account is checked
+/// with exaroton before it is saved; 1.3's own entries are left as they are.
 class MigrationScreen extends ConsumerStatefulWidget {
   const MigrationScreen({super.key, required this.accounts, required this.onDone});
   final List<LegacyAccount> accounts;
@@ -76,7 +76,7 @@ class _MigrationScreenState extends ConsumerState<MigrationScreen> {
                   FadeSlideIn(
                     index: 1,
                     child: Text(
-                      'Bring your accounts from ExaTon 1.5',
+                      'Bring your accounts from ExaTon 1.3',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
@@ -85,7 +85,7 @@ class _MigrationScreenState extends ConsumerState<MigrationScreen> {
                     index: 2,
                     child: Text(
                       'We found ${widget.accounts.length} '
-                      '${widget.accounts.length == 1 ? 'login' : 'logins'} saved by ExaTon 1.5 on this '
+                      '${widget.accounts.length == 1 ? 'login' : 'logins'} saved by ExaTon 1.3 on this '
                       'device. Import ${widget.accounts.length == 1 ? 'it' : 'them'} so you don\'t have to '
                       'paste tokens again. Each token is '
                       'checked with exaroton first. Your system may ask to allow access to the $keychain.',
@@ -259,7 +259,7 @@ class _PopIcon extends StatelessWidget {
   }
 }
 
-/// "1.5 → 1.6" mark: the old version slides aside as the new tile lands.
+/// "1.3 → 1.6" mark: the old version slides aside as the new tile lands.
 class _UpgradeMark extends StatelessWidget {
   const _UpgradeMark();
 
@@ -283,7 +283,7 @@ class _UpgradeMark extends StatelessWidget {
                 border: Border.all(color: t.outline, width: 1.5),
               ),
               child: Text(
-                '1.5',
+                '1.3',
                 style: TextStyle(color: t.onSurfaceMuted, fontWeight: FontWeight.w800),
               ),
             ),

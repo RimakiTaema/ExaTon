@@ -190,7 +190,7 @@ void main() {
         expect(find.text('Sign in'), findsOneWidget);
       });
 
-      testWidgets('1.5 migration', (tester) async {
+      testWidgets('1.3 migration', (tester) async {
         await pumpAt(
           tester,
           scale,

@@ -48,7 +48,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
-  /// 1.5 logins being offered. Held here, not read live, so the screen stays
+  /// 1.3 logins being offered. Held here, not read live, so the screen stays
   /// up while imports add accounts.
   List<LegacyAccount>? _migration;
   bool _migrationHandled = false;
@@ -73,7 +73,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       );
     } else {
       page = switch (accounts) {
-        // Wait for the 1.5 check before showing sign-in, so it does not flash.
+        // Wait for the 1.3 check before showing sign-in, so it does not flash.
         AsyncData(:final value) when value.accounts.isEmpty && prompt.isLoading => const Scaffold(
           key: ValueKey('loading'),
           body: Loading(),

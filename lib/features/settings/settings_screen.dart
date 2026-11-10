@@ -512,7 +512,7 @@ class _Accounts extends ConsumerWidget {
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                 leading: const Icon(AppIcons.importLegacy),
-                title: const Text('Import from ExaTon 1.5'),
+                title: const Text('Import from ExaTon 1.3'),
                 subtitle: Text('${legacy.length} ${legacy.length == 1 ? 'login' : 'logins'} found on this device'),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(

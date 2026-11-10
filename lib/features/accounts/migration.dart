@@ -8,7 +8,7 @@ import '../../core/exaroton/client.dart';
 import '../settings/settings.dart';
 import 'accounts.dart';
 
-/// Keychain service ExaTon 1.5 (Tauri) saved tokens under.
+/// Keychain service ExaTon 1.3 (Tauri) saved tokens under.
 const legacyService = 'net.rimaki.exatonext';
 
 @immutable
@@ -21,14 +21,14 @@ class LegacyAccount {
   String toString() => 'LegacyAccount($email)'; // Never print the token.
 }
 
-/// Finds 1.5 logins. 1.5 kept its account list in web view storage that 1.6
+/// Finds 1.3 logins. 1.3 kept its account list in web view storage that 1.6
 /// cannot read, but every token is in the OS credential store keyed by
 /// email, so listing the service is enough:
 /// - macOS: login keychain generic passwords (native channel).
 /// - Windows: Credential Manager "{email}.net.rimaki.exatonext" (native).
-/// - Linux: 1.5 used the kernel keyring, which does not survive a logout,
+/// - Linux: 1.3 used the kernel keyring, which does not survive a logout,
 ///   so there is nothing reliable to read.
-/// - Android and iOS: 1.5 was not released there.
+/// - Android and iOS: 1.3 was not released there.
 class LegacyTokenSource {
   const LegacyTokenSource([this._channel = const MethodChannel('exaton/legacy')]);
   final MethodChannel _channel;
@@ -58,7 +58,7 @@ class LegacyTokenSource {
 
 final legacyTokenSourceProvider = Provider<LegacyTokenSource>((ref) => const LegacyTokenSource());
 
-/// 1.5 logins not yet in 1.6. Empty once imported or dismissed.
+/// 1.3 logins not yet in 1.6. Empty once imported or dismissed.
 final legacyAccountsProvider = FutureProvider<List<LegacyAccount>>((ref) async {
   final state = await ref.watch(accountsProvider.future);
   final known = state.accounts.map((a) => a.token).toSet();
@@ -90,7 +90,7 @@ Future<void> markMigrationAnswered(WidgetRef ref) async {
 }
 
 /// Imports each login by checking its token with exaroton and saving it in
-/// 1.6's secure storage. 1.5's entries are left untouched.
+/// 1.6's secure storage. 1.3's entries are left untouched.
 Future<void> importLegacy(
   WidgetRef ref,
   List<LegacyAccount> accounts,

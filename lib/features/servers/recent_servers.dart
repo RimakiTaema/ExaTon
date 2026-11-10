@@ -5,7 +5,7 @@ import '../../core/exaroton/models.dart';
 import '../accounts/accounts.dart';
 import '../settings/settings.dart';
 
-/// Same key as ExaTon 1.5's localStorage entry, now in the `kv` table.
+/// Same key as ExaTon 1.3's localStorage entry, now in the `kv` table.
 const recentServersKey = 'exaton_recent_servers';
 
 /// How many recent servers are kept per account.
@@ -27,7 +27,7 @@ class RecentServer {
   final String name;
   final String address;
 
-  /// The saved account it was opened with. 1.5 keyed this by email; 1.6
+  /// The saved account it was opened with. 1.3 keyed this by email; 1.6
   /// keeps no email on the device, so it is the account's local ID.
   final String accountId;
   final DateTime visitedAt;

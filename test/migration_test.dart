@@ -57,7 +57,7 @@ void main() {
     addTearDown(tester.view.reset);
     final api = FakeAdapter({
       ...standardRoutes(),
-      // The second 1.5 token was revoked.
+      // The second 1.3 token was revoked.
       'GET /account/': (200, fixture('account')),
     });
     final bad = FakeAdapter({'GET /account/': (401, apiError('Invalid API token'))});
@@ -78,13 +78,13 @@ void main() {
     await settle(tester);
   }
 
-  testWidgets('offers 1.5 logins on first launch and imports the chosen ones', (tester) async {
+  testWidgets('offers 1.3 logins on first launch and imports the chosen ones', (tester) async {
     await pump(tester, const [
       LegacyAccount(email: 'main@example.com', token: 'good'),
       LegacyAccount(email: 'old@example.com', token: 'revoked'),
     ]);
 
-    expect(find.text('Bring your accounts from ExaTon 1.5'), findsOneWidget);
+    expect(find.text('Bring your accounts from ExaTon 1.3'), findsOneWidget);
     expect(find.text('main@example.com'), findsOneWidget);
     expect(find.text('old@example.com'), findsOneWidget);
     expect(find.text('Import 2 accounts'), findsOneWidget);
@@ -100,7 +100,7 @@ void main() {
     await tester.tap(find.text('Continue'));
     await settle(tester);
     expect(find.text('Servers'), findsWidgets);
-    expect(find.text('Bring your accounts from ExaTon 1.5'), findsNothing);
+    expect(find.text('Bring your accounts from ExaTon 1.3'), findsNothing);
     expect((await db.readJson('migration'))?['answered'], isTrue);
   });
 
@@ -116,7 +116,7 @@ void main() {
     await settle(tester, rounds: 40);
     expect(store.accounts.map((a) => a.token), ['good']);
     // All selected imports worked, so it moves on by itself.
-    expect(find.text('Bring your accounts from ExaTon 1.5'), findsNothing);
+    expect(find.text('Bring your accounts from ExaTon 1.3'), findsNothing);
   });
 
   testWidgets('"Not now" goes to sign-in and is not asked again', (tester) async {
@@ -131,14 +131,14 @@ void main() {
   testWidgets('nothing found: straight to sign-in', (tester) async {
     await pump(tester, const []);
     expect(find.text('Welcome to ExaTon'), findsOneWidget);
-    expect(find.text('Bring your accounts from ExaTon 1.5'), findsNothing);
+    expect(find.text('Bring your accounts from ExaTon 1.3'), findsNothing);
   });
 
   testWidgets('already imported tokens are not offered again', (tester) async {
     store.accounts.add(const StoredAccount(id: 'x', name: 'Main', token: 'good'));
     store.active = 'x';
     await pump(tester, const [LegacyAccount(email: 'main@example.com', token: 'good')]);
-    expect(find.text('Bring your accounts from ExaTon 1.5'), findsNothing);
+    expect(find.text('Bring your accounts from ExaTon 1.3'), findsNothing);
     expect(find.text('Survival SMP'), findsOneWidget);
   });
 }
