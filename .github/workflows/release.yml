@@ -140,8 +140,20 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk "dist/ExaTon-$LABEL-android.apk"
           cp build/app/outputs/bundle/release/app-release.aab "dist/ExaTon-$LABEL-android.aab"
           # The certificate fingerprint users can compare between releases.
-          "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs "dist/ExaTon-$LABEL-android.apk" \
-            | { grep -i "SHA-256" || true; } | head -1 > dist/android-signing-certificate.txt
+          # The runner ships several build-tools versions; use the newest.
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          echo "Using $APKSIGNER"
+          CERTS="$("$APKSIGNER" verify --print-certs "dist/ExaTon-$LABEL-android.apk")"
+          echo "$CERTS"
+          if echo "$CERTS" | grep -qi "CN=Android Debug"; then
+            echo "::error::The APK is signed with the debug key, not the release keystore."
+            exit 1
+          fi
+          echo "$CERTS" | grep -i "SHA-256 digest" | head -1 > dist/android-signing-certificate.txt
+          if [ ! -s dist/android-signing-certificate.txt ]; then
+            echo "::error::Could not read the APK signing certificate."
+            exit 1
+          fi
           cat dist/android-signing-certificate.txt
 
       - uses: actions/upload-artifact@v4
