@@ -139,10 +139,16 @@ jobs:
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-release.apk "dist/ExaTon-$LABEL-android.apk"
           cp build/app/outputs/bundle/release/app-release.aab "dist/ExaTon-$LABEL-android.aab"
+          # The newest apksigner; the runner has several build-tools versions.
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          CERTS="$("$APKSIGNER" verify --print-certs "dist/ExaTon-$LABEL-android.apk")"
+          if echo "$CERTS" | grep -q "CN=Android Debug"; then
+            echo "::error::The APK is signed with the debug key. Check the signing secrets."
+            exit 1
+          fi
           # The certificate fingerprint users can compare between releases.
-          "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs "dist/ExaTon-$LABEL-android.apk" \
-            | { grep -i "SHA-256" || true; } | head -1 > dist/android-signing-certificate.txt
-          cat dist/android-signing-certificate.txt
+          echo "$CERTS" | grep -i "certificate SHA-256" | head -1 | tee dist/android-signing-certificate.txt
+          test -s dist/android-signing-certificate.txt
 
       - uses: actions/upload-artifact@v4
         with:
