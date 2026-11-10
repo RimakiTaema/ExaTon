@@ -1,0 +1,6 @@
+{"success":true,"error":null,"data":[
+ {"id":"SwVanilla0001204","name":"Vanilla","version":"1.20.4","type":"vanilla","launcher":null},
+ {"id":"SwVanilla0001210","name":"Vanilla","version":"1.21","type":"vanilla","launcher":null},
+ {"id":"SwPaper000001210","name":"Paper","version":"1.21","type":"paper","launcher":null},
+ {"id":"SwPack0000000001","name":"All the Mods 9","version":"0.2.60","type":"modpack","launcher":"CurseForge"}
+]}

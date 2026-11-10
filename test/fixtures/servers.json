@@ -1,0 +1,8 @@
+{"success":true,"error":null,"data":[
+ {"id":"Srv0000000000001","name":"Survival SMP","address":"survival.exaroton.me","motd":"§7Welcome","status":1,"host":"de1.exaroton.me","port":25565,
+  "players":{"max":20,"count":4,"list":["Steve","Kai","Mira","Lio"]},"software":{"id":"sw1","name":"Paper","version":"1.21"},"shared":false},
+ {"id":"Srv0000000000002","name":"Creative Plots","address":"plots.exaroton.me","motd":"","status":2,"host":null,"port":null,
+  "players":{"max":20,"count":0,"list":[]},"software":{"id":"sw1","name":"Paper","version":"1.21"},"shared":false},
+ {"id":"Srv0000000000003","name":"Modded 1.20.1","address":"modded.exaroton.me","motd":"","status":0,"host":null,"port":null,
+  "players":{"max":8,"count":0,"list":[]},"software":{"id":"sw2","name":"Forge","version":"1.20.1"},"shared":true,"permissions":["console","files"]}
+]}

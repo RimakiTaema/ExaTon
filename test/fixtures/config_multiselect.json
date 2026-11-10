@@ -1,0 +1,5 @@
+{"success":true,"error":null,"data":[
+ {"key":"view-distance","label":"View Distance","type":"float","value":0.5,"min":0.1,"max":2,"step":0.1},
+ {"key":"features","label":"Features","type":"multiselect","value":["bundle","trade_rebalance"],"options":["bundle","trade_rebalance","minecart_improvements"]},
+ {"key":"level-name","label":"Level Name","type":"string","value":"world","options":null,"min":null,"max":null,"step":null}
+]}

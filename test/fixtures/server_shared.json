@@ -1,0 +1,2 @@
+{"success":true,"error":null,"data":{"id":"Srv0000000000009","name":"Shared SMP","address":"shared.exaroton.me","motd":"","status":0,"host":null,"port":null,
+ "players":{"max":10,"count":0,"list":[]},"software":{"id":"SwPaper000001210","name":"Paper","version":"1.21","type":"paper","launcher":null,"addons":["plugin"]},"shared":true,"permissions":["console","players"]}}

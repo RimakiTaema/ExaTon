@@ -1,0 +1,5 @@
+{"success":true,"error":null,"data":[
+ {"account":"Acc0000000000001","name":"Main","share":0.45,"credits":140.4,"isOwner":false},
+ {"account":"Acc0000000000002","name":"Kai","share":0.31,"credits":96.72,"isOwner":true},
+ {"account":"Acc0000000000003","name":"Rin","share":0.24,"credits":74.88,"isOwner":false}
+]}

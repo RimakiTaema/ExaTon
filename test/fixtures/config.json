@@ -1,0 +1,6 @@
+{"success":true,"error":null,"data":[
+ {"key":"max-players","label":"Max Players","type":"integer","value":20,"min":1,"max":1000,"step":1},
+ {"key":"gamemode","label":"Gamemode","type":"select","value":"survival","options":["survival","creative","adventure","spectator"]},
+ {"key":"pvp","label":"PvP","type":"boolean","value":true},
+ {"key":"motd","label":"MOTD","type":"string","value":"Hi"}
+]}

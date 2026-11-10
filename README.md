@@ -2,14 +2,16 @@
 
 The Exaroton Server Control GUI App For Control Server Without Entering Website
 (Some Feature Might Need Website For Management)
+
 > [!WARNING]
 > This Branch Was AI Assisted Please Keep In Mind that all bug caused by AI And My Bad Prompt Some AI Bug is fixable
 
 ## Major Goal
+
 - [x] Windows Release
 - [x] MacOS Release
 - [x] Linux Release
-- [ ] Android Release (Soon In 1.5.1)
+- [ ] Android Release (1.6, see [Android install](#android-install))
 - [ ] iOS Release (No)
 
 ## Features
@@ -22,3 +24,130 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] Server Config
 - [ ] Personalization (Soon In 1.4.x)
 - ~~[ ] Pool Credit Management~~ Not Possible (CPP Next Would)
+
+## 1.6 (Flutter)
+
+The Flutter rewrite. One app for Windows, macOS, Linux, Android and iOS. It
+talks to `api.exaroton.com` directly; `openapi.yaml` is the API reference.
+
+### Run
+
+```sh
+flutter pub get
+flutter run -d macos      # or windows, linux, android, ios
+flutter test              # unit + widget tests
+flutter analyze
+```
+
+No code generation step: drift is used through its SQL API.
+
+### Layout
+
+| Path | What |
+| --- | --- |
+| `lib/core/exaroton` | Pure Dart client (`client.dart`), models, websocket (`websocket.dart`). No Flutter imports. |
+| `lib/core/console` | ANSI parser and the 5,000-line ring buffer. |
+| `lib/core/storage` | Secure token store and the SQLite database. |
+| `lib/features/*` | accounts, servers, console, players, files, config, credits, settings. |
+| `lib/ui` | Theme tokens (`tokens.dart`), Material theme (`theme.dart`), shared components. |
+| `lib/app/shell.dart` | Adaptive shell: bottom bar under 600 px, rail from 600, list + detail over 1024. |
+
+### Notes
+
+- Price constant for the Running servers estimate: `creditsPerGbHour` in
+  `lib/features/credits/estimate.dart`.
+- Light theme tokens are provisional (the spec has not designed them yet).
+- Test fixtures in `test/fixtures` are written by hand in the shape of
+  `openapi.yaml`, not captured from a live account.
+
+## Android install
+
+Download `ExaTon-<version>.apk` from the [Releases](../../releases) page and
+open it on the phone. ExaTon is not on Google Play, so Android treats it as a
+sideloaded app.
+
+> [!IMPORTANT]
+> **App verification warnings.** You may see one of these. They are about how
+> the app was installed, not a problem found in it.
+>
+> - **"Install unknown apps"**: allow your browser or file manager to install
+>   apps when Android asks, then tap Install again.
+> - **Play Protect "Unsafe app blocked" / "App scan recommended"**: tap
+>   *More details* → *Install anyway*. Play Protect warns about apps it has not
+>   seen from Google Play.
+> - **Unverified developer (Android developer verification)**: Google is
+>   rolling out a rule that apps on certified Android devices must come from a
+>   registered developer. It began on 30 September 2026 in Brazil, Indonesia,
+>   Singapore and Thailand and is planned worldwide in 2027. If ExaTon is not
+>   registered yet and your device blocks it, turn on
+>   *Settings → Developer options → Allow apps from unverified developers*,
+>   wait out the one-time 24-hour delay, then install. Installing with
+>   `adb install ExaTon-<version>.apk` from a computer is not affected.
+>
+> Only install builds from this repository's Releases page. Each release lists
+> the SHA-256 of the APK and of its signing certificate in `SHA256SUMS.txt`;
+> the certificate is the same for every release, so an update signed with a
+> different key will refuse to install over the old one.
+
+## Release signing (maintainer)
+
+Releases are built by `.github/workflows/release.yml` when a `v*` tag is
+pushed. The workflow fails, instead of publishing a debug-signed APK, until
+these four repository secrets exist.
+
+**1. Create the key once** (skip if you already have
+`exatonext-release.jks`). Keep the file and passwords backed up: a lost key
+means users must uninstall to update.
+
+```sh
+keytool -genkeypair -v -keystore ~/Android/keystores/exatonext-release.jks \
+  -alias exatonext -keyalg RSA -keysize 4096 -validity 10000
+```
+
+**2. Local release builds.** Create `android/key.properties` (gitignored,
+never commit it):
+
+```properties
+storeFile=/Users/<you>/Android/keystores/exatonext-release.jks
+storePassword=<store password>
+keyAlias=exatonext
+keyPassword=<key password>
+```
+
+Then `flutter build apk --release`. Without this file, release builds fall
+back to the debug key.
+
+**3. GitHub secrets.** From the repo folder, with the GitHub CLI signed in
+(`gh auth login`). Each `gh secret set` without `--body` asks for the value,
+so passwords stay out of your shell history:
+
+```sh
+base64 -i ~/Android/keystores/exatonext-release.jks | gh secret set ANDROID_KEYSTORE_BASE64
+gh secret set ANDROID_KEYSTORE_PASSWORD
+gh secret set ANDROID_KEY_ALIAS        # e.g. exatonext
+gh secret set ANDROID_KEY_PASSWORD
+```
+
+Or add them under *Settings → Secrets and variables → Actions*. On Linux use
+`base64 -w0 <file>` instead of `base64 -i <file>`.
+
+**4. Release.** Bump `version:` in `pubspec.yaml` and `appVersionName` /
+`appVersionCode` in `lib/app/app_info.dart` (a test checks they match), commit,
+then:
+
+```sh
+git tag v1.6.0 && git push origin v1.6.0
+```
+
+**5. Developer verification.** To clear the "unverified developer" block,
+register on the [Android Developer Console](https://developer.android.com/developer-verification)
+with package name `net.rimaki.exatonext` and the release key's certificate
+SHA-256:
+
+```sh
+keytool -list -v -keystore ~/Android/keystores/exatonext-release.jks -alias exatonext | grep SHA256
+```
+
+CI (`.github/workflows/ci.yml`) runs `flutter analyze`, `flutter test` and a
+debug APK build on every push and pull request; the APK is attached to the run
+as an artifact.

@@ -1,0 +1,2 @@
+{"success":true,"error":null,"data":{"id":"Srv0000000000010","name":"example","address":"example.exaroton.me","motd":"My cool server!","status":0,"host":null,"port":null,
+ "players":{"max":20,"count":0,"list":[]},"software":{"id":"SwVanilla0001210","name":"Vanilla","version":"1.21","type":"vanilla","launcher":null,"addons":[]},"shared":false,"permissions":null}}
