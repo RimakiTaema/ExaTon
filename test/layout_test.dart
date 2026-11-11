@@ -165,8 +165,13 @@ void main() {
         await scrollThrough(tester);
         await tester.drag(find.byType(Scrollable).first, const Offset(0, 4000));
         await settle(tester, rounds: 4);
-        await reveal(tester, find.text('Friends SMP pool'));
-        await tester.tap(find.text('Friends SMP pool'));
+        // The pool card; the Storage section lists the pool's name too.
+        final pool = find.descendant(
+          of: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_PoolCard'),
+          matching: find.text('Friends SMP pool'),
+        );
+        await reveal(tester, pool);
+        await tester.tap(pool);
         await settle(tester, rounds: 12);
         expectBalancesOnOneLine(tester);
         await scrollThrough(tester);

@@ -68,7 +68,10 @@ class _AboutScreenState extends State<AboutScreen> {
     ListTile info(String title, String value, {VoidCallback? onTap}) => ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
       title: Text(title),
-      trailing: Text(value, style: TextStyle(color: t.onSurfaceMuted, fontWeight: FontWeight.w600)),
+      trailing: Text(
+        value,
+        style: TextStyle(color: t.onSurfaceMuted, fontWeight: FontWeight.w600),
+      ),
       onTap: onTap,
     );
 
@@ -83,7 +86,12 @@ class _AboutScreenState extends State<AboutScreen> {
               child: Semantics(
                 image: true,
                 label: 'ExaTon',
-                child: Image.asset('assets/images/logo.png', width: 88, height: 88, filterQuality: FilterQuality.medium),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 88,
+                  height: 88,
+                  filterQuality: FilterQuality.medium,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -137,7 +145,7 @@ class _AboutScreenState extends State<AboutScreen> {
             const SizedBox(height: 20),
             const InfoNote(
               'ExaTon is a community app and is not affiliated with exaroton. '
-              'Your API tokens are kept in this device's secure storage.',
+              "Your API tokens are kept in this device's secure storage.",
             ),
           ],
         ),
