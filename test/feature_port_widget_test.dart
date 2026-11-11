@@ -476,6 +476,28 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('console: save a typed command as a quick command, long-press removes it', (tester) async {
+    await pumpApp(tester);
+    await tester.tap(find.text('Alpha'));
+    await settle(tester);
+    final input = find.widgetWithText(TextField, 'Type a command');
+    await tester.enterText(input, 'say hi');
+    await tester.pump();
+    await tester.tap(find.text('Save as quick command'));
+    await settle(tester);
+    expect(find.widgetWithText(ActionChip, 'say hi'), findsOneWidget);
+    expect((await db.readJson('settings'))!['quickCommands'], contains('say hi'));
+
+    await tester.ensureVisible(find.widgetWithText(ActionChip, 'say hi'));
+    await settle(tester);
+    await tester.longPress(find.widgetWithText(ActionChip, 'say hi'));
+    await settle(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+    await settle(tester);
+    expect(find.widgetWithText(ActionChip, 'say hi'), findsNothing);
+    await unmount(tester);
+  });
+
   testWidgets('recent servers: the phone lists opened servers under the Recent filter', (tester) async {
     await pumpApp(tester);
     expect(find.text('Recent 0'), findsOneWidget);

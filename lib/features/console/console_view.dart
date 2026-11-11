@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/console/ansi.dart';
+import '../../core/console/complete.dart';
 import '../../core/exaroton/client.dart';
 import '../../core/exaroton/models.dart';
 import '../../core/exaroton/websocket.dart';
@@ -101,8 +102,46 @@ class _ConsoleViewState extends ConsumerState<ConsoleView> {
     }
   }
 
+  void _complete(String name) {
+    final v = completeWith(_input.text, name);
+    _input.value = TextEditingValue(
+      text: v,
+      selection: TextSelection.collapsed(offset: v.length),
+    );
+    _inputFocus.requestFocus();
+  }
+
+  Future<void> _addQuick(String cmd) async {
+    final c = cmd.trim();
+    if (c.isEmpty) return;
+    await ref
+        .read(settingsProvider.notifier)
+        .update((x) => x.copyWith(quickCommands: [...x.quickCommands.where((q) => q != c), c]));
+    if (mounted) showMessage(context, 'Added "$c" to quick commands');
+  }
+
+  Future<void> _removeQuick(String cmd) async {
+    final ok = await confirm(
+      context,
+      title: 'Remove "$cmd"?',
+      body: 'It is removed from the quick commands on every server.',
+      action: 'Remove',
+    );
+    if (!ok) return;
+    await ref
+        .read(settingsProvider.notifier)
+        .update((x) => x.copyWith(quickCommands: x.quickCommands.where((q) => q != cmd).toList()));
+  }
+
   KeyEventResult _onKey(LiveSession s, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
+    // Tab completes a player name, the first match.
+    if (e.logicalKey == LogicalKeyboardKey.tab) {
+      final m = playerCompletions(_input.text, s.server.players.list);
+      if (m.isEmpty) return KeyEventResult.ignored;
+      _complete(m.first);
+      return KeyEventResult.handled;
+    }
     final h = s.history;
     if (e.logicalKey == LogicalKeyboardKey.arrowUp && h.isNotEmpty) {
       _historyIndex = (_historyIndex + 1).clamp(0, h.length - 1);
@@ -132,6 +171,14 @@ class _ConsoleViewState extends ConsumerState<ConsoleView> {
                   ListTile(
                     title: Text(h, style: _mono),
                     onTap: () => Navigator.pop(c, h),
+                    trailing: IconButton(
+                      tooltip: 'Add to quick commands',
+                      icon: const Icon(AppIcons.add),
+                      onPressed: () {
+                        Navigator.pop(c);
+                        _addQuick(h);
+                      },
+                    ),
                   ),
               ],
             ),
@@ -319,21 +366,55 @@ class _ConsoleViewState extends ConsumerState<ConsoleView> {
             ),
           ),
           const SizedBox(height: 12),
-          // Quick commands.
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (final c in ref.watch(settingsProvider.select((x) => x.quickCommands)))
-                  Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: ActionChip(
-                      label: Text(c, style: _mono.copyWith(fontWeight: FontWeight.w700)),
-                      onPressed: s.commandInFlight ? null : () => _send(s, c),
-                    ),
-                  ),
-              ],
-            ),
+          // Player names that complete the word being typed, else quick
+          // commands (long-press one to remove it).
+          ValueListenableBuilder(
+            valueListenable: _input,
+            builder: (context, v, _) {
+              final names = playerCompletions(v.text, s.server.players.list);
+              final quick = ref.watch(settingsProvider.select((x) => x.quickCommands));
+              final typed = v.text.trim();
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: names.isNotEmpty
+                      ? [
+                          for (final n in names)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: ActionChip(
+                                avatar: const Icon(AppIcons.addPlayer, size: 18),
+                                label: Text(n, style: _mono.copyWith(fontWeight: FontWeight.w700)),
+                                onPressed: () => _complete(n),
+                              ),
+                            ),
+                        ]
+                      : [
+                          // First, so it is in view while typing on a phone.
+                          if (typed.isNotEmpty && !quick.contains(typed))
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: ActionChip(
+                                avatar: const Icon(AppIcons.add, size: 18),
+                                label: const Text('Save as quick command'),
+                                onPressed: () => _addQuick(typed),
+                              ),
+                            ),
+                          for (final c in quick)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: GestureDetector(
+                                onLongPress: () => _removeQuick(c),
+                                child: ActionChip(
+                                  label: Text(c, style: _mono.copyWith(fontWeight: FontWeight.w700)),
+                                  onPressed: s.commandInFlight ? null : () => _send(s, c),
+                                ),
+                              ),
+                            ),
+                        ],
+                ),
+              );
+            },
           ),
           const SizedBox(height: 10),
           // Input.
