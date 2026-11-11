@@ -8,6 +8,7 @@ import '../../core/exaroton/client.dart';
 import '../../core/storage/account_store.dart';
 import '../../core/storage/database.dart';
 import '../servers/status_alerts.dart';
+import '../widget/home_widget.dart';
 import '../settings/settings.dart';
 import 'credits.dart';
 import 'estimate.dart';
@@ -173,6 +174,10 @@ void backgroundDispatcher() {
             for (final alert in await checkStatuses(db, a.id, list, settings.statusAlerts)) {
               await CreditAlerts.instance.notifyStatus(alert);
             }
+            // Keep the home-screen widget current too.
+            final followed = await widgetServerId();
+            final server = list.where((s) => s.id == followed).firstOrNull;
+            if (server != null) await pushWidget(widgetData(accountId: a.id, server: server));
           }
           if (!settings.alertsEnabled) continue;
           final account = await client.getAccount();

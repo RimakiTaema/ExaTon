@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,8 @@ import '../features/servers/server_icon.dart';
 import '../features/servers/servers.dart';
 import '../features/servers/servers_screen.dart';
 import '../features/servers/status_alerts.dart';
+import '../features/widget/home_widget.dart';
+import '../features/widget/widget_data.dart';
 import '../features/settings/settings.dart';
 import '../features/settings/settings_screen.dart';
 import '../ui/components.dart';
@@ -99,6 +102,9 @@ class _AppShellState extends ConsumerState<AppShell> {
       if (o != null && id != null) {
         CreditAlerts.instance.evaluate(o, ref.read(settingsProvider), ref.read(databaseProvider), id);
       }
+    });
+    ref.listen(homeWidgetDataProvider, (prev, next) {
+      if (next != null && !mapEquals(prev, next)) pushWidget(next);
     });
     ref.listen(serversProvider, (_, next) async {
       final list = next.value;
