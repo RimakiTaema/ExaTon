@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:exaton/app/app_info.dart';
@@ -16,6 +15,7 @@ import 'package:exaton/features/servers/access_tab.dart';
 import 'package:exaton/features/servers/recent_servers.dart';
 import 'package:exaton/features/settings/settings.dart';
 import 'package:exaton/main.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -620,5 +620,37 @@ void main() {
     );
     expect(find.text('$appVersionName (build $appVersionCode)'), findsOneWidget);
     await unmount(tester);
+  });
+
+  testWidgets('About: in the rail on Windows', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    try {
+      await pumpApp(tester, size: const Size(1280, 900));
+      await tester.tap(find.text('About'));
+      await settle(tester);
+      expect(find.byType(AboutScreen), findsOneWidget);
+      await unmount(tester);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('About: macOS menu bar item opens the About page', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await pumpApp(tester, size: const Size(1280, 900));
+      // macOS shows About in the app menu, not in the rail.
+      expect(find.text('About'), findsNothing);
+      final bar = tester.widget<PlatformMenuBar>(find.byType(PlatformMenuBar));
+      final app = bar.menus.first as PlatformMenu;
+      final about = (app.menus.first as PlatformMenuItemGroup).members.first;
+      expect(about.label, 'About ExaTon');
+      about.onSelected!();
+      await settle(tester);
+      expect(find.byType(AboutScreen), findsOneWidget);
+      await unmount(tester);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }
