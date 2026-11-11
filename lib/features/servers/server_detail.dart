@@ -13,6 +13,7 @@ import '../credits/credits_screen.dart';
 import '../files/files_tab.dart';
 import '../players/players_tab.dart';
 import 'access_tab.dart';
+import 'calculate_tab.dart';
 import 'logs_tab.dart';
 import 'overview_tab.dart';
 import 'server_actions.dart';
@@ -34,7 +35,10 @@ enum DetailTab {
   addons('Add-ons', 'file'),
   logs('Logs', null),
   config('Config', 'config'),
-  pool('Pool', null);
+  pool('Pool', null),
+
+  /// Monthly cost what-ifs. Needs the RAM size, so the same rule as Options.
+  calculate('Calculate', 'options');
 
   const DetailTab(this.label, this.permission);
   final String label;
@@ -43,7 +47,7 @@ enum DetailTab {
   final String? permission;
 }
 
-/// Server detail with Overview, Access (shared servers), Console, Players, Files, Logs, Config and Pool.
+/// Server detail with Overview, Access (shared servers), Console, Players, Files, Logs, Config, Pool and Calculate.
 /// Tabs the `permissions` list does not allow are hidden.
 class ServerDetail extends ConsumerStatefulWidget {
   const ServerDetail({super.key, required this.serverId, this.initialTab = DetailTab.console, this.showBack = false});
@@ -236,6 +240,7 @@ class _ServerDetailState extends ConsumerState<ServerDetail> with TickerProvider
                         DetailTab.logs => LogsTab(server: server),
                         DetailTab.config => ConfigTab(server: server),
                         DetailTab.pool => ServerPoolTab(server: server),
+                        DetailTab.calculate => CalculateTab(server: server),
                       },
                     ),
                 ],

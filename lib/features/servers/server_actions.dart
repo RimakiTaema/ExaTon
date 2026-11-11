@@ -5,6 +5,7 @@ import '../../core/exaroton/client.dart';
 import '../../core/exaroton/models.dart';
 import '../../ui/components.dart';
 import '../../ui/motion.dart';
+import '../../ui/toast.dart';
 import '../../ui/tokens.dart';
 import '../accounts/accounts.dart';
 import 'logs_tab.dart';
@@ -38,7 +39,7 @@ Future<void> runAction(
     final msg = await ref.read(serverActionsProvider.notifier).run(s, a, useOwnCredits: useOwnCredits);
     if (msg != null && context.mounted) showMessage(context, msg);
   } on ExarotonException catch (e) {
-    if (context.mounted) showMessage(context, e.message);
+    if (context.mounted) showMessage(context, e.message, tone: Tone.error);
   }
 }
 
@@ -49,10 +50,8 @@ Future<void> runAction(
 Future<bool> deleteServerFlow(BuildContext context, WidgetRef ref, Server s, {VoidCallback? onDeleted}) async {
   final client = ref.read(clientProvider);
   if (client == null || !s.isOwner) return false;
-  final messenger = ScaffoldMessenger.maybeOf(context);
-  void say(String text) => messenger
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
+  final toaster = Toaster.of(context);
+  void say(String text, {Tone? tone}) => toaster?.show(text, tone: tone);
 
   final g = s.status.group;
   if (g != StatusGroup.offline && g != StatusGroup.crashed) {
@@ -90,14 +89,14 @@ Future<bool> deleteServerFlow(BuildContext context, WidgetRef ref, Server s, {Vo
   try {
     await client.deleteServer(s.id);
   } on ExarotonException catch (e) {
-    say(e.message);
+    say(e.message, tone: Tone.error);
     return false;
   }
   onDeleted?.call();
   if (ref.read(selectedServerProvider) == s.id) ref.read(selectedServerProvider.notifier).select(null);
   await ref.read(recentServersControllerProvider).forget(s.id);
   await ref.read(serversProvider.notifier).refresh();
-  say('${s.name} deleted');
+  say('${s.name} deleted', tone: Tone.success);
   return true;
 }
 
@@ -135,7 +134,7 @@ Future<void> changeSoftwareFlow(BuildContext context, WidgetRef ref, Server s) a
     if (context.mounted) showMessage(context, 'Installing $software. The server status shows the progress.');
     await ref.read(serversProvider.notifier).refresh();
   } on ExarotonException catch (e) {
-    if (context.mounted) showMessage(context, e.message);
+    if (context.mounted) showMessage(context, e.message, tone: Tone.error);
   }
 }
 
@@ -316,6 +315,6 @@ Future<void> extendTimer(BuildContext context, WidgetRef ref, Server server) asy
     await client?.extendStopTime(server.id, minutes * 60);
     if (context.mounted) showMessage(context, 'Stop timer extended by $minutes minutes');
   } on ExarotonException catch (e) {
-    if (context.mounted) showMessage(context, e.message);
+    if (context.mounted) showMessage(context, e.message, tone: Tone.error);
   }
 }

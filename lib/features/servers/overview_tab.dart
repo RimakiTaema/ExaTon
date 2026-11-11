@@ -10,14 +10,14 @@ import '../../ui/tokens.dart';
 import '../accounts/accounts.dart';
 import '../console/live_session.dart';
 import '../credits/credits.dart';
-import '../credits/estimate.dart';
 import '../charts/time_series_chart.dart';
 import 'logs_tab.dart';
 import 'server_actions.dart';
 import 'stats_history.dart';
 import '../../ui/app_icons.dart';
 
-final _ramProvider = FutureProvider.autoDispose.family<int, String>((ref, id) => requireClient(ref).getRam(id));
+/// The server's RAM in GB, straight from the API.
+final serverRamProvider = FutureProvider.autoDispose.family<int, String>((ref, id) => requireClient(ref).getRam(id));
 final _motdProvider = FutureProvider.autoDispose.family<String, String>((ref, id) => requireClient(ref).getMotd(id));
 
 class OverviewTab extends ConsumerWidget {
@@ -98,9 +98,8 @@ class OverviewTab extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text('Supports: ${software.addons!.join(', ')}', style: TextStyle(color: t.onSurfaceMuted)),
                 ],
-                // Share Access names no software permission, so only the
-                // owner is offered the change.
-                if (server.isOwner) ...[
+                // The owner, or a shared account granted Software.
+                if (server.allows('software')) ...[
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: () => changeSoftwareFlow(context, ref, server),
@@ -114,8 +113,6 @@ class OverviewTab extends ConsumerWidget {
         if (canEditOptions) ...[
           const SizedBox(height: 16),
           _RamCard(server: server),
-          const SizedBox(height: 16),
-          _CostCard(server: server),
           const SizedBox(height: 16),
           _MotdCard(server: server),
         ],
@@ -166,7 +163,7 @@ class _LiveStats extends ConsumerWidget {
     final tick = session.tick;
     final heap = session.heap;
     final history = ref.watch(statsHistoryProvider(s.id));
-    final ramGb = ref.watch(ramCacheProvider).value?[s.id] ?? (showRam ? ref.watch(_ramProvider(s.id)).value : null);
+    final ramGb = ref.watch(ramCacheProvider).value?[s.id] ?? (showRam ? ref.watch(serverRamProvider(s.id)).value : null);
 
     List<ChartPoint> series(double? Function(StatsPoint p) pick) => [
       for (final p in history)
@@ -329,11 +326,11 @@ class _RamCardState extends ConsumerState<_RamCard> {
     try {
       final saved = await ref.read(clientProvider)!.setRam(widget.server.id, gb);
       await ref.read(ramCacheProvider.notifier).set(widget.server.id, saved);
-      ref.invalidate(_ramProvider(widget.server.id));
+      ref.invalidate(serverRamProvider(widget.server.id));
       if (mounted) showMessage(context, 'RAM set to $saved GB. It applies on the next start.');
       setState(() => _draft = null);
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.message);
+      if (mounted) showMessage(context, e.message, tone: Tone.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -342,7 +339,7 @@ class _RamCardState extends ConsumerState<_RamCard> {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final ram = ref.watch(_ramProvider(widget.server.id));
+    final ram = ref.watch(serverRamProvider(widget.server.id));
     return AppCard(
       child: switch (ram) {
         AsyncData(:final value) => Column(
@@ -411,7 +408,7 @@ class _MotdCardState extends ConsumerState<_MotdCard> {
       ref.invalidate(_motdProvider(widget.server.id));
       if (mounted) showMessage(context, 'MOTD saved');
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.message);
+      if (mounted) showMessage(context, e.message, tone: Tone.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -449,66 +446,6 @@ class _MotdCardState extends ConsumerState<_MotdCard> {
         AsyncError(:final error) => Text('MOTD: $error', style: TextStyle(color: t.onSurfaceMuted)),
         _ => const SizedBox(height: 60, child: Loading()),
       },
-    );
-  }
-}
-
-/// Monthly cost at a chosen number of hours a day, from the server's RAM and
-/// the storage price. Not saved: it is a what-if.
-class _CostCard extends ConsumerStatefulWidget {
-  const _CostCard({required this.server});
-  final Server server;
-
-  @override
-  ConsumerState<_CostCard> createState() => _CostCardState();
-}
-
-class _CostCardState extends ConsumerState<_CostCard> {
-  double _hours = 4;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final id = widget.server.id;
-    final ram = ref.watch(ramCacheProvider).value?[id] ?? ref.watch(_ramProvider(id)).value;
-    final label = TextStyle(color: t.onSurfaceMuted, fontWeight: FontWeight.w600, fontSize: 15);
-    final h = _hours.round();
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Monthly cost', style: label),
-          const SizedBox(height: 4),
-          if (ram == null)
-            Text('Waiting for the RAM size...', style: TextStyle(color: t.onSurfaceMuted))
-          else ...[
-            Text(
-              '~${formatCredits(monthlyCredits(ramGb: ram, hoursPerDay: h.toDouble()))} credits a month',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Running $h ${h == 1 ? 'hour' : 'hours'} a day: '
-              '${formatCredits(ram * creditsPerGbHour * h * 30)} for $ram GB of RAM '
-              '+ ${storageCreditsPerServerMonth.toStringAsFixed(0)} storage',
-              style: TextStyle(color: t.onSurfaceMuted, height: 1.4),
-            ),
-            Slider(
-              value: _hours,
-              min: 0,
-              max: 24,
-              divisions: 24,
-              label: '$h h / day',
-              semanticFormatterCallback: (v) => '${v.round()} hours a day',
-              onChanged: (v) => setState(() => _hours = v),
-            ),
-            Text(
-              'A month is counted as 30 days. Storage is charged even while the server is offline.',
-              style: TextStyle(color: t.onSurfaceMuted, fontSize: 13),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }

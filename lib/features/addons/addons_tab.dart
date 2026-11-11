@@ -194,7 +194,7 @@ class _BrowseViewState extends ConsumerState<_BrowseView> {
       if (mounted) showMessage(context, 'Installed ${p.title}');
       ref.invalidate(_installedProvider((widget.server.id, widget.target.folder)));
     } catch (e) {
-      if (mounted) showMessage(context, _modrinthError(e));
+      if (mounted) showMessage(context, _modrinthError(e), tone: Tone.error);
     } finally {
       if (mounted) setState(() => _busy.remove(p.id));
     }
@@ -381,7 +381,7 @@ class _InstalledViewState extends ConsumerState<_InstalledView> {
         u.isEmpty ? 'Everything is up to date' : '${u.length} update${u.length == 1 ? '' : 's'} available',
       );
     } catch (e) {
-      if (mounted) showMessage(context, _modrinthError(e));
+      if (mounted) showMessage(context, _modrinthError(e), tone: Tone.error);
     } finally {
       if (mounted) setState(() => _checking = false);
     }
@@ -396,7 +396,7 @@ class _InstalledViewState extends ConsumerState<_InstalledView> {
       if (mounted) showMessage(context, done);
       ref.invalidate(_installedProvider(_key));
     } catch (e) {
-      if (mounted) showMessage(context, _modrinthError(e));
+      if (mounted) showMessage(context, _modrinthError(e), tone: Tone.error);
     } finally {
       if (mounted) setState(() => _busy.remove(path));
     }

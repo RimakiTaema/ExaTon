@@ -28,9 +28,10 @@ List<AccessFeature> accessFeatures(Server server) => [
   (label: 'Console', detail: 'Live console and commands', allowed: server.allows('console')),
   (label: 'Players', detail: 'Whitelist, operators and bans', allowed: server.allows('player')),
   (label: 'Files', detail: 'File browser and editor', allowed: server.allows('file')),
-  (label: 'Config', detail: 'Config file options', allowed: server.allows('config')),
+  (label: 'Config', detail: 'Every option in any config file', allowed: server.allows('config')),
   (label: 'RAM and MOTD', detail: 'Server options on Overview', allowed: server.allows('options')),
-  (label: 'Software and delete', detail: 'Owner only, never shared', allowed: server.isOwner),
+  (label: 'Software', detail: 'Change the server software and version', allowed: server.allows('software')),
+  (label: 'Delete server', detail: 'Owner only, never shared', allowed: server.isOwner),
 ];
 
 /// Share Access for a server shared with this account: the permissions the

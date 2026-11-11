@@ -98,7 +98,7 @@ class _ConsoleViewState extends ConsumerState<ConsoleView> {
       setState(() => _following = true);
       _jumpToEnd();
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.message);
+      if (mounted) showMessage(context, e.message, tone: Tone.error);
     }
   }
 
@@ -209,7 +209,7 @@ class _ConsoleViewState extends ConsumerState<ConsoleView> {
       final log = await s.shareLog();
       await launchUrl(Uri.parse(log.url), mode: LaunchMode.externalApplication);
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.message);
+      if (mounted) showMessage(context, e.message, tone: Tone.error);
     }
   }
 

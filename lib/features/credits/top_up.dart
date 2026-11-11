@@ -8,6 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../ui/components.dart';
 import '../../ui/motion.dart';
+import '../../ui/toast.dart';
 import '../../ui/tokens.dart';
 import 'credits.dart';
 import '../../ui/app_icons.dart';
@@ -198,13 +199,11 @@ class _TopUpPageState extends State<TopUpPage> {
   /// in the system browser.
   Future<void> _handOff(Uri u) async {
     final container = ProviderScope.containerOf(context, listen: false);
-    final messenger = ScaffoldMessenger.maybeOf(context);
+    final toaster = Toaster.of(context);
     refreshCreditsOnResume(container);
     Navigator.of(context).maybePop('handoff');
     await launchUrl(u, mode: LaunchMode.externalApplication);
-    messenger?.showSnackBar(
-      const SnackBar(content: Text('Google sign-in opens in your browser. Balances refresh when you come back.')),
-    );
+    toaster?.show('Google sign-in opens in your browser. Balances refresh when you come back.');
   }
 
   @override

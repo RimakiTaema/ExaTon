@@ -183,7 +183,7 @@ void main() {
     expect(find.text('Ctrl K'), findsOneWidget);
     expect(find.text('Account credits'), findsOneWidget);
     expect(find.byType(TabBar), findsOneWidget);
-    for (final tab in ['Overview', 'Console', 'Players', 'Files', 'Config', 'Pool']) {
+    for (final tab in ['Overview', 'Console', 'Players', 'Files', 'Config', 'Pool', 'Calculate']) {
       expect(find.widgetWithText(Tab, tab), findsOneWidget, reason: tab);
     }
     expect(find.text('Restart'), findsOneWidget);

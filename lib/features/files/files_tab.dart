@@ -40,7 +40,7 @@ class _FilesTabState extends ConsumerState<FilesTab> {
       await f();
       if (done != null && mounted) showMessage(context, done);
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.isTooLarge ? 'That file is too large for the API.' : e.message);
+      if (mounted) showMessage(context, e.isTooLarge ? 'That file is too large for the API.' : e.message, tone: Tone.error);
     }
   }
 
@@ -292,7 +292,7 @@ class _TextFileEditorState extends ConsumerState<TextFileEditor> {
       _original = _c.text;
       if (mounted) showMessage(context, 'Saved ${widget.file.name}');
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.message);
+      if (mounted) showMessage(context, e.message, tone: Tone.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

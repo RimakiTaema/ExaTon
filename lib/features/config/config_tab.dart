@@ -13,6 +13,9 @@ final configProvider = FutureProvider.autoDispose.family<List<ConfigOption>, (St
   (ref, key) => requireClient(ref).getConfig(key.$1, key.$2),
 );
 
+/// Picker value that asks for a typed path.
+const _otherFile = '\u0000other';
+
 const _commonConfigs = ['server.properties', 'bukkit.yml', 'spigot.yml', 'config/paper-global.yml'];
 
 /// Renders a form from each option's type: text, number (with min, max and
@@ -29,6 +32,42 @@ class ConfigTab extends ConsumerStatefulWidget {
 
 class _ConfigTabState extends ConsumerState<ConfigTab> {
   late String _path = widget.initialPath;
+
+  /// Files typed in with "Other file...", kept in the picker this session.
+  final _opened = <String>{};
+
+  /// Asks for any config file path, relative to the server folder.
+  Future<String?> _askPath() async {
+    final c = TextEditingController();
+    String? clean(String v) {
+      final p = v.trim().replaceAll(r'\', '/').replaceFirst(RegExp(r'^/+'), '');
+      return p.isEmpty ? null : p;
+    }
+
+    final path = await showDialog<String>(
+      context: context,
+      builder: (d) => AlertDialog(
+        title: const Text('Open a config file'),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Path',
+            hintText: 'plugins/Essentials/config.yml',
+            helperText: 'Relative to the server folder. Properties, YAML, JSON and TOML files work.',
+            helperMaxLines: 2,
+          ),
+          onSubmitted: (v) => Navigator.pop(d, clean(v)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(d), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(d, clean(c.text)), child: const Text('Open')),
+        ],
+      ),
+    );
+    if (path != null) _opened.add(path);
+    return path;
+  }
   final _changes = <String, Object?>{};
   String _filter = '';
   bool _saving = false;
@@ -46,7 +85,7 @@ class _ConfigTabState extends ConsumerState<ConfigTab> {
         );
       }
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.message);
+      if (mounted) showMessage(context, e.message, tone: Tone.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -69,18 +108,26 @@ class _ConfigTabState extends ConsumerState<ConfigTab> {
             );
             if (widget.fixedPath) return filter;
             final picker = DropdownMenu<String>(
+              // Rebuilt per path so a typed file shows as the selection.
+              key: ValueKey(_path),
               initialSelection: _path,
               width: wide ? 280 : c.maxWidth,
               label: const Text('File'),
-              onSelected: (v) {
+              onSelected: (v) async {
                 if (v == null) return;
+                final next = v == _otherFile ? await _askPath() : v;
+                if (next == null || next == _path || !mounted) {
+                  if (mounted) setState(() {}); // put the picker back on the current file
+                  return;
+                }
                 setState(() {
-                  _path = v;
+                  _path = next;
                   _changes.clear();
                 });
               },
               dropdownMenuEntries: [
-                for (final p in {..._commonConfigs, _path}) DropdownMenuEntry(value: p, label: p),
+                for (final p in {..._commonConfigs, ..._opened, _path}) DropdownMenuEntry(value: p, label: p),
+                const DropdownMenuEntry(value: _otherFile, label: 'Other file...', leadingIcon: Icon(AppIcons.add)),
               ],
             );
             return wide

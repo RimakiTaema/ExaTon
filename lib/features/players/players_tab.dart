@@ -66,7 +66,7 @@ class _PlayersTabState extends ConsumerState<PlayersTab> {
       ref.invalidate(playerListProvider((widget.server.id, list)));
       if (mounted) showMessage(context, 'Saved $list');
     } on ExarotonException catch (e) {
-      if (mounted) showMessage(context, e.message);
+      if (mounted) showMessage(context, e.message, tone: Tone.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

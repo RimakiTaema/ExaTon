@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/app_info.dart';
+import '../../ui/toast.dart';
 
 /// Where releases are published. ExaTon is installed from here on every
 /// platform, so nothing else tells users about a new version.
@@ -79,11 +80,5 @@ Future<void> openRelease(ReleaseInfo r) => launchUrl(r.url, mode: LaunchMode.ext
 
 /// The launch notice: once per run, when a newer release exists.
 void showUpdateNotice(BuildContext context, ReleaseInfo r) {
-  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-    SnackBar(
-      content: Text('ExaTon ${r.version} is available'),
-      duration: const Duration(seconds: 8),
-      action: SnackBarAction(label: 'Download', onPressed: () => openRelease(r)),
-    ),
-  );
+  showToast(context, 'ExaTon ${r.version} is available', actionLabel: 'Download', onAction: () => openRelease(r));
 }

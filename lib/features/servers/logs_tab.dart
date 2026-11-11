@@ -49,7 +49,7 @@ Future<void> shareServerLog(BuildContext context, WidgetRef ref, Server server) 
     }
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   } on ExarotonException catch (e) {
-    if (context.mounted) showMessage(context, e.message);
+    if (context.mounted) showMessage(context, e.message, tone: Tone.error);
   }
 }
 

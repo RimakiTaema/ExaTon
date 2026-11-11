@@ -31,7 +31,7 @@ Future<void> backupFlow(BuildContext context, ExarotonClient client, Server serv
     }
     level = levelName(props);
   } on ExarotonException catch (e) {
-    if (context.mounted) showMessage(context, e.message);
+    if (context.mounted) showMessage(context, e.message, tone: Tone.error);
     return;
   }
   if (!context.mounted) return;
@@ -56,7 +56,7 @@ Future<void> backupFlow(BuildContext context, ExarotonClient client, Server serv
       // The server writes chunks after it answers.
       await Future<void>.delayed(const Duration(seconds: 5));
     } on ExarotonException catch (e) {
-      if (context.mounted) showMessage(context, 'Could not save the world first: ${e.message}');
+      if (context.mounted) showMessage(context, 'Could not save the world first: ${e.message}', tone: Tone.error);
       return;
     }
   }

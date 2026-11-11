@@ -5,6 +5,7 @@ import '../core/exaroton/client.dart';
 import '../core/modrinth/modrinth.dart';
 import '../core/exaroton/models.dart';
 import 'motion.dart';
+import 'toast.dart';
 import 'tokens.dart';
 import 'app_icons.dart';
 
@@ -665,11 +666,8 @@ class LabeledIconButton extends StatelessWidget {
   }
 }
 
-void showMessage(BuildContext context, String text) {
-  ScaffoldMessenger.maybeOf(context)
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
-}
+/// Shows [text] as a toast. Pass [tone] for success, warning or error.
+void showMessage(BuildContext context, String text, {Tone? tone}) => showToast(context, text, tone: tone);
 
 Future<bool> confirm(
   BuildContext context, {

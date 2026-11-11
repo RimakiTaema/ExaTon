@@ -260,14 +260,14 @@ void main() {
     expect(find.text('players'), findsOneWidget);
     expect(find.text('Manage player lists: whitelist, operators and bans'), findsOneWidget);
     final list = find.descendant(of: find.byType(AccessTab), matching: find.byType(Scrollable)).first;
-    await tester.scrollUntilVisible(find.text('Software and delete'), 200, scrollable: list);
+    await tester.scrollUntilVisible(find.text('Delete server'), 200, scrollable: list);
     expect(find.text('Available'), findsNWidgets(2), reason: 'console and players');
-    expect(find.text('Not available'), findsNWidgets(4), reason: 'files, config, options and owner-only');
+    expect(find.text('Not available'), findsNWidgets(5), reason: 'files, config, options, software and delete');
 
     await openTab(tester, 'Overview');
     expect(find.text('Shared'), findsNothing);
     expect(find.text('Paper 1.21'), findsOneWidget);
-    // Owner-only actions are hidden on a shared server.
+    // Software is not granted here, and delete is owner-only.
     expect(find.text('Change software'), findsNothing);
     expect(find.text('Delete server'), findsNothing);
     await unmount(tester);
@@ -488,6 +488,9 @@ void main() {
     await settle(tester);
     expect(find.widgetWithText(ActionChip, 'say hi'), findsOneWidget);
     expect((await db.readJson('settings'))!['quickCommands'], contains('say hi'));
+    // The confirmation toast floats over the chips; close it first.
+    await tester.tap(find.byTooltip('Dismiss'));
+    await settle(tester);
 
     await tester.ensureVisible(find.widgetWithText(ActionChip, 'say hi'));
     await settle(tester);

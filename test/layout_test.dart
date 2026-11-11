@@ -142,7 +142,7 @@ void main() {
         await reveal(tester, find.text('Survival SMP'));
         await tester.tap(find.text('Survival SMP'));
         await settle(tester, rounds: 12);
-        for (final tab in ['Overview', 'Console', 'Players', 'Files', 'Config', 'Pool']) {
+        for (final tab in ['Overview', 'Console', 'Players', 'Files', 'Config', 'Pool', 'Calculate']) {
           final f = find.widgetWithText(Tab, tab);
           await tester.ensureVisible(f);
           await tester.tap(f);
