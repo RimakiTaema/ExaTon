@@ -1,4 +1,4 @@
 /// The app version, as in pubspec.yaml's `version: name+code`. Kept here so
 /// it can be shown without a platform plugin; a test checks the two match.
-const appVersionName = '1.7.1';
-const appVersionCode = 2;
+const appVersionName = '1.7.2';
+const appVersionCode = 3;

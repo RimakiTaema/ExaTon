@@ -7,6 +7,13 @@
 /// code change. Source: exaroton pricing page, Nov 2026.
 const double creditsPerGbHour = 1.0;
 
+/// Credits per server per month for keeping its files, charged by exaroton
+/// whether the server runs or not.
+const double storageCreditsPerServerMonth = 10.0;
+
+/// The storage price per server per hour, with a month counted as 30 days.
+const double storageCreditsPerServerHour = storageCreditsPerServerMonth / (30 * 24);
+
 /// Window and minimum span for the Recent usage method.
 const recentUsageWindow = Duration(hours: 6);
 const recentUsageMinSpan = Duration(minutes: 30);
@@ -54,7 +61,8 @@ class RunningCost {
   double? get creditsPerHour => ramGb == null ? null : ramGb! * creditsPerGbHour;
 }
 
-/// Running servers: credits divided by the hourly cost of running servers.
+/// Running servers: credits divided by the hourly cost of running servers,
+/// plus storage for the [storedServers] this payer keeps.
 ///
 /// Returns null when any running server that this [payer] pays for has an
 /// unknown RAM, so the caller can fall back to Recent usage.
@@ -62,8 +70,9 @@ Estimate? estimateFromRunning({
   required double credits,
   required String? payer,
   required Iterable<RunningCost> running,
+  int storedServers = 0,
 }) {
-  var perHour = 0.0;
+  var perHour = storedServers * storageCreditsPerServerHour;
   for (final r in running.where((r) => r.payer == payer)) {
     final c = r.creditsPerHour;
     if (c == null) return null;
@@ -111,10 +120,12 @@ Estimate? estimate({
   required Iterable<RunningCost> running,
   required List<BalanceSample> samples,
   required DateTime now,
+  int storedServers = 0,
 }) {
   Estimate? fromSamples() => estimateFromSamples(credits: credits, samples: samples, now: now);
   if (preferred == EstimateMethod.recentUsage) return fromSamples();
-  return estimateFromRunning(credits: credits, payer: payer, running: running) ?? fromSamples();
+  return estimateFromRunning(credits: credits, payer: payer, running: running, storedServers: storedServers) ??
+      fromSamples();
 }
 
 Duration _hours(double h) => Duration(seconds: (h * 3600).round());

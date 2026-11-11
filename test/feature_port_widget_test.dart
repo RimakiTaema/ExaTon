@@ -11,6 +11,7 @@ import 'package:exaton/features/addons/addons.dart';
 import 'package:exaton/features/charts/time_series_chart.dart';
 import 'package:exaton/features/console/live_session.dart';
 import 'package:exaton/features/debug/debug_screen.dart';
+import 'package:exaton/features/settings/about_screen.dart';
 import 'package:exaton/features/servers/access_tab.dart';
 import 'package:exaton/features/servers/recent_servers.dart';
 import 'package:exaton/features/settings/settings.dart';
@@ -575,16 +576,29 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('debug screen: opens from Settings and both probes report', (tester) async {
+  testWidgets('debug screen: hidden in About until the build number is tapped 7 times', (tester) async {
     await pumpApp(tester);
     await tester.tap(find.text('Settings').last);
     await settle(tester, 10);
-    await tester.scrollUntilVisible(find.text('Debug'), 300, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(find.text('About'), 300, scrollable: find.byType(Scrollable).first);
     // Clear of the bottom bar before tapping.
     await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
     await settle(tester, 4);
-    await tester.tap(find.text('Debug'));
+    await tester.tap(find.text('About'));
     await settle(tester);
+    expect(find.byType(AboutScreen), findsOneWidget);
+    expect(find.text(appVersionName), findsOneWidget);
+    expect(find.text('Debug'), findsNothing);
+
+    for (var i = 1; i < debugUnlockTaps; i++) {
+      await tester.tap(find.text('Build'));
+      await tester.pump();
+    }
+    expect(find.byType(DebugScreen), findsNothing);
+    expect(find.text('1 tap away from Debug'), findsOneWidget);
+    await tester.tap(find.text('Build'));
+    await settle(tester);
+    expect(find.byType(DebugScreen), findsOneWidget);
     expect(find.text('main@example.com'), findsOneWidget);
     expect(find.text('Accepted by exaroton'), findsOneWidget);
     expect(find.text('Idle'), findsNWidgets(2));

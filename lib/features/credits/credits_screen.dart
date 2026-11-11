@@ -117,11 +117,37 @@ class CreditsScreen extends ConsumerWidget {
                     ),
                 ],
               ),
+            if (value.stored.values.any((n) => n > 0)) ...[
+              SectionHeader('Storage', trailing: const Text('credits per month')),
+              CardList(
+                children: [
+                  for (final e in value.stored.entries)
+                    if (e.value > 0)
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                        title: Text(
+                          e.key == null ? 'Your account' : (value.poolSummaries[e.key]?.name ?? 'A pool'),
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                        ),
+                        subtitle: Text(
+                          '${e.value} ${e.value == 1 ? 'server' : 'servers'} x '
+                          '${storageCreditsPerServerMonth.toStringAsFixed(0)} credits',
+                          style: TextStyle(color: t.onSurfaceMuted, fontSize: 15),
+                        ),
+                        trailing: Text(
+                          (e.value * storageCreditsPerServerMonth).toStringAsFixed(0),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                        ),
+                      ),
+                ],
+              ),
+            ],
             const SizedBox(height: 20),
             InfoNote(
               method == EstimateMethod.runningServers
                   ? 'Time left is an estimate: pool credits divided by the hourly cost of servers running now '
-                        '(1 credit per GB of RAM per hour). Storage, 10 credits per server per month, is not included. '
+                        '(1 credit per GB of RAM per hour) plus storage, 10 credits per server per month, '
+                        'charged whether a server runs or not. '
                         'Deposits and member changes are done on exaroton.'
                   : 'Time left is an estimate from how fast the balance fell over the last 6 hours. '
                         'It needs at least 30 minutes of samples. Deposits and member changes are done on exaroton.',

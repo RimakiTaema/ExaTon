@@ -173,6 +173,7 @@ class CreditsOverview {
     required this.poolSummaries,
     required this.payerOf,
     required this.running,
+    this.stored = const {},
     required this.updated,
   });
 
@@ -184,6 +185,9 @@ class CreditsOverview {
   /// Server ID to pool ID, for servers in a pool.
   final Map<String, String> payerOf;
   final List<RunningRow> running;
+
+  /// Servers each payer keeps, for the storage price. Null key: the account.
+  final Map<String?, int> stored;
   final DateTime updated;
 
   List<PayerSummary> get lowPools => poolSummaries.values.where((p) => p.low).toList();
@@ -262,6 +266,14 @@ Future<CreditsOverview> computeOverview({
   final ramGb = await ram(billed.keys);
   final costs = [for (final s in billed.values) RunningCost(serverId: s.id, ramGb: ramGb[s.id], payer: payerOf[s.id])];
 
+  // Every server is charged storage, running or not: pool servers to their
+  // pool, the account's own servers to the account. Shared ones are the
+  // owner's.
+  final stored = <String?, int>{
+    null: myServers.where((s) => !s.shared && !payerOf.containsKey(s.id)).length,
+    for (final e in poolServers.entries) e.key: e.value.length,
+  };
+
   Future<PayerSummary> summarise(String? poolId, String name, double credits) async {
     final samples = await db.samples(sampleOwner(accountId, poolId));
     final est = estimate(
@@ -271,6 +283,7 @@ Future<CreditsOverview> computeOverview({
       running: costs,
       samples: samples,
       now: at,
+      storedServers: stored[poolId] ?? 0,
     );
     final decision = decideAlert(
       estimate: est,
@@ -297,6 +310,7 @@ Future<CreditsOverview> computeOverview({
           creditsPerHour: ramGb[s.id] == null ? null : ramGb[s.id]! * creditsPerGbHour,
         ),
     ],
+    stored: stored,
     updated: updated ?? at,
   );
 }
