@@ -11,8 +11,8 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] Windows Release
 - [x] MacOS Release
 - [x] Linux Release
-- [ ] Android Release (1.6, see [Android install](#android-install))
-- [ ] iOS Release (No)
+- [x] Android Release (1.6, see [Android install](#android-install))
+- [ ] iOS Release (Release in 1.6.2)
 
 ## Features
 
@@ -22,8 +22,8 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] Files
 - [x] Player Control
 - [x] Server Config
-- [ ] Personalization (Soon In 1.4.x)
-- ~~[ ] Pool Credit Management~~ Not Possible (CPP Next Would)
+- [x] Personalization
+- [x] Pool Credit Management (Via Webview System)
 
 ## 1.6 (Flutter)
 
