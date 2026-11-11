@@ -105,6 +105,10 @@ Future<bool> deleteServerFlow(BuildContext context, WidgetRef ref, Server s, {Vo
 /// reinstall, which deletes every file, needs a second confirmation.
 Future<void> changeSoftwareFlow(BuildContext context, WidgetRef ref, Server s) async {
   final choice = await pickSoftware(context, currentId: s.software?.id);
+  if (choice != null && choice.custom && context.mounted) {
+    await showCustomSoftwareDialog(context, serverName: s.name);
+    return;
+  }
   final software = choice?.software;
   if (software == null || !context.mounted) return;
   final details = await showDialog<SoftwareDetails>(

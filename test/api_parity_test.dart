@@ -177,6 +177,19 @@ void main() {
       expect(filterSoftware(list, query: '1.21').map((s) => s.name), ['Vanilla', 'Paper']);
       expect(filterSoftware(list, type: 'paper', query: 'vanilla'), isEmpty);
     });
+
+    test('custom software: matched by search, labelled, never sent to the API', () {
+      expect(customMatches(''), isTrue);
+      expect(customMatches('Custom'), isTrue);
+      expect(customMatches('jar'), isTrue);
+      expect(customMatches('paper'), isFalse);
+      const c = SoftwareChoice.custom();
+      expect(c.custom, isTrue);
+      expect(c.label, 'Custom software');
+      expect(c.software, isNull);
+      expect(c.latestType, isNull);
+      expect(const SoftwareChoice.latest('paper').custom, isFalse);
+    });
   });
 
   group('config options', () {
