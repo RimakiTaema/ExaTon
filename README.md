@@ -12,7 +12,7 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] MacOS Release
 - [x] Linux Release
 - [x] Android Release (1.6, see [Android install](#android-install))
-- [ ] iOS Release (Release in 1.6.2)
+- [x] iOS Release (1.7.1, unsigned `.ipa` for sideloading, see [iOS install](#ios-install))
 
 ## Features
 
@@ -72,12 +72,12 @@ Download from the [Releases](../../releases) page:
 | Platform | File | Notes |
 | --- | --- | --- |
 | Windows 10/11 (x64) | `ExaTon-<version>-windows-x64.zip` | Unzip and run `ExaTon\exaton.exe`. SmartScreen may say *Windows protected your PC*: choose *More info* → *Run anyway*. The app is not code-signed. |
-| macOS 11+ (Apple silicon and Intel) | `ExaTon-<version>-macos.dmg` | Drag ExaTon to Applications. The app is not notarized, so the first time right-click it → *Open* → *Open*, or allow it under *System Settings → Privacy & Security*. |
+| macOS 11+ (Apple silicon and Intel) | `ExaTon-<version>-macos.dmg` | Drag ExaTon to Applications. The app is not notarized, so the first launch is blocked: open *System Settings → Privacy & Security* and click *Open Anyway* (macOS 14 and older: right-click it → *Open* → *Open*). If macOS says the app is damaged, run `xattr -dr com.apple.quarantine /Applications/ExaTon.app`. |
 | Linux (x64) | `ExaTon-<version>-linux-x64.tar.gz` | Extract and run `ExaTon/exaton`. Needs GTK 3 and libsecret with a keyring such as GNOME Keyring or KWallet (`sudo apt install libgtk-3-0 libsecret-1-0`). |
 
 ## Android install
 
-Download `ExaTon-<version>.apk` from the [Releases](../../releases) page and
+Download `ExaTon-<version>-android.apk` from the [Releases](../../releases) page and
 open it on the phone. ExaTon is not on Google Play, so Android treats it as a
 sideloaded app.
 
@@ -97,19 +97,50 @@ sideloaded app.
 >   registered yet and your device blocks it, turn on
 >   *Settings → Developer options → Allow apps from unverified developers*,
 >   wait out the one-time 24-hour delay, then install. Installing with
->   `adb install ExaTon-<version>.apk` from a computer is not affected.
+>   `adb install ExaTon-<version>-android.apk` from a computer is not affected.
 >
 > Only install builds from this repository's Releases page. Each release lists
 > the SHA-256 of the APK and of its signing certificate in `SHA256SUMS.txt`;
 > the certificate is the same for every release, so an update signed with a
 > different key will refuse to install over the old one.
 
+## iOS install
+
+Download `ExaTon-<version>-ios-unsigned.ipa` from the [Releases](../../releases)
+page (iOS / iPadOS 15+). ExaTon is not on the App Store and the `.ipa` is not
+signed, so you sign it with your own Apple ID while installing:
+
+- **AltStore or SideStore** (on the device): install
+  [AltStore](https://altstore.io) or [SideStore](https://sidestore.io), then
+  open the `.ipa` with it (*Share → AltStore/SideStore*, or *My Apps → +*).
+- **Sideloadly** (from a Mac or Windows PC): install
+  [Sideloadly](https://sideloadly.io), connect the device by cable, drag the
+  `.ipa` in, enter your Apple ID and press *Start*.
+
+Then turn on *Settings → Privacy & Security → Developer Mode* (iOS 16+) and
+trust your Apple ID under *Settings → General → VPN & Device Management*. With
+a free Apple ID the app must be re-signed every 7 days; AltStore and SideStore
+do this for you.
+
+**Build it yourself** (macOS with Xcode and CocoaPods):
+
+```sh
+flutter pub get
+flutter build ios --release --no-codesign   # compile check / unsigned build
+open ios/Runner.xcworkspace                  # set your Team under Signing, then Run on a device
+```
+
+The home-screen widget and background alert checks are Android only; on iOS,
+alerts are checked while the app is open.
+
 ## Release signing (maintainer)
 
 Releases are built by `.github/workflows/release.yml` when a version tag is
 pushed: `v1.6.0` or `1.6.0`, optionally with a suffix such as `-beta.1`
-(published as a pre-release). It builds Android, Windows, macOS and Linux and
-puts them in one GitHub release. *Actions → Release → Run workflow* builds
+(published as a pre-release). It builds Android, iOS (unsigned `.ipa`),
+Windows, macOS and Linux and puts them in one GitHub release, with install
+steps for every platform from `.github/release-notes.md` above the generated
+changelog. *Actions → Release → Run workflow* builds
 everything without publishing. The workflow fails, instead of publishing a
 debug-signed APK, until these four repository secrets exist.
 
@@ -169,6 +200,6 @@ SHA-256:
 keytool -list -v -keystore ~/Android/keystores/exatonext-release.jks -alias exatonext | grep SHA256
 ```
 
-CI (`.github/workflows/ci.yml`) runs `flutter analyze`, `flutter test` and a
-debug APK build on every push and pull request; the APK is attached to the run
-as an artifact.
+CI (`.github/workflows/ci.yml`) runs `flutter analyze`, `flutter test`, a
+debug APK build and an unsigned iOS build on every push and pull request; the
+APK is attached to the run as an artifact.
