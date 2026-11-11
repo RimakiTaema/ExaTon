@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/shell.dart';
 import 'core/storage/database.dart';
 import 'features/credits/alerts.dart';
+import 'features/settings/about_screen.dart';
 import 'features/settings/settings.dart';
 import 'features/widget/home_widget.dart';
 import 'ui/theme.dart';
@@ -40,6 +41,54 @@ Future<void> main() async {
   );
 }
 
+/// Lets the macOS menu bar open pages without a BuildContext under the
+/// Navigator.
+final appNavigatorKey = GlobalKey<NavigatorState>();
+
+void _openAbout() => appNavigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const AboutScreen()));
+
+/// The macOS menu bar. "About ExaTon" opens the app's About page instead of
+/// the standard panel; the rest are the usual system items.
+Widget _macMenuBar(Widget child) {
+  PlatformMenuItemGroup provided(List<PlatformProvidedMenuItemType> types) => PlatformMenuItemGroup(
+    members: [
+      for (final type in types)
+        if (PlatformProvidedMenuItem.hasMenu(type)) PlatformProvidedMenuItem(type: type),
+    ],
+  );
+  return PlatformMenuBar(
+    menus: [
+      PlatformMenu(
+        label: 'ExaTon',
+        menus: [
+          const PlatformMenuItemGroup(
+            members: [PlatformMenuItem(label: 'About ExaTon', onSelected: _openAbout)],
+          ),
+          provided(const [PlatformProvidedMenuItemType.servicesSubmenu]),
+          provided(const [
+            PlatformProvidedMenuItemType.hide,
+            PlatformProvidedMenuItemType.hideOtherApplications,
+            PlatformProvidedMenuItemType.showAllApplications,
+          ]),
+          provided(const [PlatformProvidedMenuItemType.quit]),
+        ],
+      ),
+      PlatformMenu(
+        label: 'Window',
+        menus: [
+          provided(const [
+            PlatformProvidedMenuItemType.minimizeWindow,
+            PlatformProvidedMenuItemType.zoomWindow,
+            PlatformProvidedMenuItemType.toggleFullScreen,
+          ]),
+          provided(const [PlatformProvidedMenuItemType.arrangeWindowsInFront]),
+        ],
+      ),
+    ],
+    child: child,
+  );
+}
+
 class ExaTonApp extends ConsumerWidget {
   const ExaTonApp({super.key, this.home});
   final Widget? home;
@@ -48,7 +97,10 @@ class ExaTonApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(settingsProvider.select((s) => s.theme));
     final high = theme.contrast == ContrastSetting.high;
+    final mac = !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
+      builder: mac ? (context, child) => _macMenuBar(child!) : null,
       title: 'ExaTon',
       debugShowCheckedModeBanner: false,
       themeMode: theme.themeMode,

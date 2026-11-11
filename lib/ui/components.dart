@@ -36,7 +36,13 @@ const gutter = 20.0;
 final _credits = NumberFormat('#,##0.00');
 String formatCredits(double v) => _credits.format(v);
 
-String formatPerHour(double v) => v >= 10 ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
+/// Two decimals under 0.1 so storage alone (about 0.01 an hour) does not
+/// read as 0.0.
+String formatPerHour(double v) => v >= 10
+    ? v.toStringAsFixed(0)
+    : v > 0 && v < 0.1
+    ? v.toStringAsFixed(2)
+    : v.toStringAsFixed(1);
 
 String formatClock(DateTime t) => DateFormat.Hm().format(t);
 

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:exaton/app/app_info.dart';
@@ -11,10 +10,12 @@ import 'package:exaton/features/addons/addons.dart';
 import 'package:exaton/features/charts/time_series_chart.dart';
 import 'package:exaton/features/console/live_session.dart';
 import 'package:exaton/features/debug/debug_screen.dart';
+import 'package:exaton/features/settings/about_screen.dart';
 import 'package:exaton/features/servers/access_tab.dart';
 import 'package:exaton/features/servers/recent_servers.dart';
 import 'package:exaton/features/settings/settings.dart';
 import 'package:exaton/main.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -575,16 +576,29 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('debug screen: opens from Settings and both probes report', (tester) async {
+  testWidgets('debug screen: hidden in About until the build number is tapped 7 times', (tester) async {
     await pumpApp(tester);
     await tester.tap(find.text('Settings').last);
     await settle(tester, 10);
-    await tester.scrollUntilVisible(find.text('Debug'), 300, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(find.text('About'), 300, scrollable: find.byType(Scrollable).first);
     // Clear of the bottom bar before tapping.
     await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
     await settle(tester, 4);
-    await tester.tap(find.text('Debug'));
+    await tester.tap(find.text('About'));
     await settle(tester);
+    expect(find.byType(AboutScreen), findsOneWidget);
+    expect(find.text(appVersionName), findsOneWidget);
+    expect(find.text('Debug'), findsNothing);
+
+    for (var i = 1; i < debugUnlockTaps; i++) {
+      await tester.tap(find.text('Build'));
+      await tester.pump();
+    }
+    expect(find.byType(DebugScreen), findsNothing);
+    expect(find.text('1 tap away from Debug'), findsOneWidget);
+    await tester.tap(find.text('Build'));
+    await settle(tester);
+    expect(find.byType(DebugScreen), findsOneWidget);
     expect(find.text('main@example.com'), findsOneWidget);
     expect(find.text('Accepted by exaroton'), findsOneWidget);
     expect(find.text('Idle'), findsNWidgets(2));
@@ -606,5 +620,37 @@ void main() {
     );
     expect(find.text('$appVersionName (build $appVersionCode)'), findsOneWidget);
     await unmount(tester);
+  });
+
+  testWidgets('About: in the rail on Windows', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    try {
+      await pumpApp(tester, size: const Size(1280, 900));
+      await tester.tap(find.text('About'));
+      await settle(tester);
+      expect(find.byType(AboutScreen), findsOneWidget);
+      await unmount(tester);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('About: macOS menu bar item opens the About page', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await pumpApp(tester, size: const Size(1280, 900));
+      // macOS shows About in the app menu, not in the rail.
+      expect(find.text('About'), findsNothing);
+      final bar = tester.widget<PlatformMenuBar>(find.byType(PlatformMenuBar));
+      final app = bar.menus.first as PlatformMenu;
+      final about = (app.menus.first as PlatformMenuItemGroup).members.first;
+      expect(about.label, 'About ExaTon');
+      about.onSelected!();
+      await settle(tester);
+      expect(find.byType(AboutScreen), findsOneWidget);
+      await unmount(tester);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }

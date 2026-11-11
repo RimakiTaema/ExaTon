@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/settings/about_screen.dart';
+import '../features/settings/updates.dart';
 import '../core/exaroton/models.dart';
 import '../features/accounts/account_chip.dart';
 import '../features/accounts/accounts.dart';
@@ -102,6 +104,10 @@ class _AppShellState extends ConsumerState<AppShell> {
       if (o != null && id != null) {
         CreditAlerts.instance.evaluate(o, ref.read(settingsProvider), ref.read(databaseProvider), id);
       }
+    });
+    ref.listen(updateCheckProvider, (_, next) {
+      final r = next.value;
+      if (r != null) showUpdateNotice(context, r);
     });
     ref.listen(homeWidgetDataProvider, (prev, next) {
       if (next != null && !mapEquals(prev, next)) pushWidget(next);
@@ -305,7 +311,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
 /// Everything in the rail under Servers and Credits: a separator, the
 /// recent servers (scrolling when they do not fit), another separator, and
-/// Account and Settings at the bottom.
+/// Account and Settings (and About on Windows and Linux) at the bottom.
 class _RailTail extends ConsumerWidget {
   const _RailTail({required this.settingsSelected, required this.onSettings, required this.onOpen});
   final bool settingsSelected;
@@ -342,6 +348,13 @@ class _RailTail extends ConsumerWidget {
           selected: settingsSelected,
           onTap: onSettings,
         ),
+        // macOS has About in the app menu; Windows and Linux get it here.
+        if (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux)
+          _RailItem(
+            icon: Icon(AppIcons.info, color: t.onSurfaceMuted),
+            label: 'About',
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutScreen())),
+          ),
         const SizedBox(height: 8),
       ],
     );

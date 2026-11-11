@@ -157,7 +157,8 @@ void main() {
     await tester.scrollUntilVisible(find.text('Friends SMP pool'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('View only'), findsOneWidget);
     expect(find.text('Friends SMP pool'), findsOneWidget);
-    expect(find.text('~3.5 days left'), findsOneWidget);
+    // 312 credits / (4 GB running + storage for 1 server) = ~77.7 hours.
+    expect(find.text('~3 days left'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Paid by Friends SMP pool'),
       200,

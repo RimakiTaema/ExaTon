@@ -36,6 +36,28 @@ void main() {
       expect(e.timeLeft, isNull);
     });
 
+    test('storage is 10 credits per server per month, running or not', () {
+      final e = estimateFromRunning(credits: 10, payer: null, running: const [], storedServers: 1)!;
+      expect(e.creditsPerHour, closeTo(10 / 720, 1e-12));
+      expect(e.timeLeft, const Duration(days: 30));
+    });
+
+    test('storage adds to the running cost', () {
+      final e = estimateFromRunning(
+        credits: 312,
+        payer: 'pool',
+        running: const [RunningCost(serverId: 'a', ramGb: 4, payer: 'pool')],
+        storedServers: 3,
+      )!;
+      expect(e.creditsPerHour, closeTo(4 + 30 / 720, 1e-12));
+    });
+
+    test('monthly cost: RAM while running plus storage', () {
+      expect(monthlyCredits(ramGb: 4, hoursPerDay: 4), 4 * 4 * 30 + 10);
+      expect(monthlyCredits(ramGb: 8, hoursPerDay: 0), 10);
+      expect(monthlyCredits(ramGb: 2, hoursPerDay: 24), 2 * 24 * 30 + 10);
+    });
+
     test('unknown RAM returns null so the caller falls back', () {
       expect(
         estimateFromRunning(credits: 100, payer: null, running: const [RunningCost(serverId: 'a', ramGb: null)]),

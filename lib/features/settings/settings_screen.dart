@@ -17,7 +17,7 @@ import '../accounts/migration_screen.dart';
 import '../credits/alerts.dart';
 import '../servers/status_alerts.dart';
 import '../credits/estimate.dart';
-import '../debug/debug_screen.dart';
+import 'about_screen.dart';
 import 'settings.dart';
 import '../../ui/app_icons.dart';
 
@@ -334,7 +334,7 @@ class _CreditSettings extends ConsumerWidget {
         Text(
           s.estimateMethod == EstimateMethod.runningServers
               ? 'Adds up 1 credit per GB of RAM per hour for each running server. Falls back to Recent usage '
-                    'when a server\'s RAM is unknown. Storage (10 credits per server per month) is not included.'
+                    'when a server\'s RAM is unknown. Includes storage, 10 credits per server per month.'
               : 'Measures how fast the balance fell over the last 6 hours, ignoring deposits. '
                     'Needs at least 30 minutes of samples taken while the app is open.',
           style: TextStyle(color: t.onSurfaceMuted, height: 1.4),
@@ -578,16 +578,16 @@ class _Accounts extends ConsumerWidget {
           children: [
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              title: const Text('Debug', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              subtitle: const Text('Connection checks and version'),
+              title: const Text('About', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              subtitle: const Text('Version, project and licences'),
               trailing: const Icon(AppIcons.next),
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DebugScreen())),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutScreen())),
             ),
           ],
         ),
         const SizedBox(height: 24),
         Text(
-          'ExaTon 1.7.1 - not affiliated with exaroton',
+          'ExaTon - not affiliated with exaroton',
           textAlign: TextAlign.center,
           style: TextStyle(color: t.onSurfaceMuted),
         ),

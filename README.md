@@ -29,6 +29,9 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] World backups (Files > Back up worlds / Restore a backup, as a zip)
 - [x] Console player-name completion (Tab, or chips on phones) and quick commands saved from the console
 - [x] Android home-screen widget (status, players, credits, Start and Stop)
+- [x] Storage price (10 credits per server per month) in credit estimates, and a monthly cost calculator on each server
+- [x] Update check against GitHub Releases (on launch and in Settings > About)
+- [x] About page; Debug unlocks by tapping the build number 7 times
 
 ## 1.6 (Flutter)
 
