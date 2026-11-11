@@ -71,10 +71,16 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
+  # APK and AAB build in parallel on separate runners instead of one after
+  # the other in a single job.
   android:
-    name: Android
+    name: Android ${{ matrix.format }}
     needs: version
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: true
+      matrix:
+        format: [apk, aab]
     env:
       LABEL: ${{ needs.version.outputs.label }}
     steps:
@@ -128,17 +134,31 @@ jobs:
 
       - run: flutter pub get
 
-      - name: Build APK and AAB
-        run: |
-          ARGS="--release --build-name=${{ needs.version.outputs.name }} --build-number=${{ github.run_number }}"
-          flutter build apk $ARGS
-          flutter build appbundle $ARGS
+      - name: Build APK
+        if: matrix.format == 'apk'
+        run: flutter build apk --release --build-name=${{ needs.version.outputs.name }} --build-number=${{ github.run_number }}
 
-      - name: Package
+      - name: Build AAB
+        if: matrix.format == 'aab'
+        run: flutter build appbundle --release --build-name=${{ needs.version.outputs.name }} --build-number=${{ github.run_number }}
+
+      - name: Package AAB
+        if: matrix.format == 'aab'
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/bundle/release/app-release.aab "dist/ExaTon-$LABEL-android.aab"
+          CERTS="$(keytool -printcert -jarfile "dist/ExaTon-$LABEL-android.aab")"
+          echo "$CERTS"
+          if echo "$CERTS" | grep -qi "CN=Android Debug"; then
+            echo "::error::The AAB is signed with the debug key, not the release keystore."
+            exit 1
+          fi
+
+      - name: Package APK
+        if: matrix.format == 'apk'
         run: |
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-release.apk "dist/ExaTon-$LABEL-android.apk"
-          cp build/app/outputs/bundle/release/app-release.aab "dist/ExaTon-$LABEL-android.aab"
           # The certificate fingerprint users can compare between releases.
           # The runner ships several build-tools versions; use the newest.
           APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
@@ -158,7 +178,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: release-android
+          name: release-android-${{ matrix.format }}
           path: dist/
 
       - name: Remove the keystore
