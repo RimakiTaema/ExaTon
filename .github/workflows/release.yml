@@ -1,6 +1,6 @@
 name: Release
 
-# Builds Android, Windows, macOS and Linux and publishes them as one GitHub
+# Builds Android, iOS, Windows, macOS and Linux and publishes them as one GitHub
 # release when a version tag is pushed. Tags may start with "v" or not:
 #   v1.6.0  1.6.0  v1.6.0-beta.1  1.6.0-rc1
 # The x.y.z part must match `version:` in pubspec.yaml. A tag with a "-"
@@ -31,7 +31,7 @@ jobs:
       prerelease: ${{ steps.v.outputs.prerelease }}
       publish: ${{ steps.v.outputs.publish }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Work out the version
         id: v
@@ -78,7 +78,7 @@ jobs:
     env:
       LABEL: ${{ needs.version.outputs.label }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Refuse to ship a debug-signed APK: Gradle would quietly fall back to
       # the debug key without these.
@@ -114,7 +114,7 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD"
           } > android/key.properties
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
@@ -156,7 +156,7 @@ jobs:
           fi
           cat dist/android-signing-certificate.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-android
           path: dist/
@@ -172,7 +172,7 @@ jobs:
     env:
       LABEL: ${{ needs.version.outputs.label }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install build dependencies
         run: |
@@ -196,7 +196,7 @@ jobs:
           tar -C build/linux/x64/release --transform 's/^bundle/ExaTon/' \
             -czf "dist/ExaTon-$LABEL-linux-x64.tar.gz" bundle
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-linux
           path: dist/
@@ -208,7 +208,7 @@ jobs:
     env:
       LABEL: ${{ needs.version.outputs.label }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
@@ -228,7 +228,7 @@ jobs:
           Copy-Item -Recurse build/windows/x64/runner/Release/* $stage
           Compress-Archive -Path $stage -DestinationPath "dist/ExaTon-$env:LABEL-windows-x64.zip"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-windows
           path: dist/
@@ -240,7 +240,7 @@ jobs:
     env:
       LABEL: ${{ needs.version.outputs.label }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
@@ -260,17 +260,62 @@ jobs:
           ln -s /Applications stage/Applications
           hdiutil create -volname ExaTon -srcfolder stage -ov -format UDZO "dist/ExaTon-$LABEL-macos.dmg"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-macos
           path: dist/
 
+  ios:
+    name: iOS
+    needs: version
+    runs-on: macos-latest
+    env:
+      LABEL: ${{ needs.version.outputs.label }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - run: flutter pub get
+
+      # Unsigned: there is no Apple Developer account behind these builds.
+      # Users sign the .ipa on install with AltStore, SideStore or Sideloadly
+      # (see README, "iOS install").
+      - run: flutter build ios --release --no-codesign --build-name=${{ needs.version.outputs.name }} --build-number=${{ github.run_number }}
+
+      - name: Package
+        run: |
+          mkdir -p dist stage/Payload
+          cp -R build/ios/iphoneos/Runner.app stage/Payload/
+          (cd stage && zip -qry "../dist/ExaTon-$LABEL-ios-unsigned.ipa" Payload)
+          ls -l dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-ios
+          path: dist/
+
   publish:
     name: Publish
-    needs: [version, android, linux, windows, macos]
+    needs: [version, android, linux, windows, macos, ios]
     runs-on: ubuntu-24.04
+    env:
+      LABEL: ${{ needs.version.outputs.label }}
     steps:
-      - uses: actions/download-artifact@v4
+      # Only the release notes template is needed here.
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/release-notes.md
+          sparse-checkout-cone-mode: false
+
+      - name: Release notes
+        run: sed "s/{{LABEL}}/$LABEL/g" .github/release-notes.md > "$RUNNER_TEMP/notes.md"
+
+      - uses: actions/download-artifact@v8
         with:
           pattern: release-*
           path: dist
@@ -287,16 +332,17 @@ jobs:
           cat SHA256SUMS.txt
 
       # Every platform in one place for a manual run, which does not publish.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: exaton-${{ needs.version.outputs.label }}
           path: dist/
 
       - name: Publish the GitHub release
         if: needs.version.outputs.publish == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ExaTon ${{ needs.version.outputs.label }}
           files: dist/*
+          body_path: ${{ runner.temp }}/notes.md
           prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
           generate_release_notes: true
