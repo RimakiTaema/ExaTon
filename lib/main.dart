@@ -7,6 +7,7 @@ import 'app/shell.dart';
 import 'core/storage/database.dart';
 import 'features/credits/alerts.dart';
 import 'features/settings/settings.dart';
+import 'features/widget/home_widget.dart';
 import 'ui/theme.dart';
 
 Future<void> main() async {
@@ -25,11 +26,10 @@ Future<void> main() async {
   final db = AppDatabase.open();
   final settings = await AppSettings.load(db);
   await CreditAlerts.instance.init();
-  if (settings.alertsEnabled) {
-    try {
-      await registerBackgroundCheck();
-    } catch (_) {}
-  }
+  try {
+    await registerBackgroundCheck(settings);
+  } catch (_) {}
+  await registerWidgetActions();
   runApp(
     ProviderScope(
       // Errors are shown with a retry button; no silent automatic retries.

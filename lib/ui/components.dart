@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../core/exaroton/client.dart';
+import '../core/modrinth/modrinth.dart';
 import '../core/exaroton/models.dart';
 import 'motion.dart';
 import 'tokens.dart';
@@ -442,6 +443,9 @@ ErrorInfo describeError(Object e) {
       );
     }
     return ErrorInfo(title: 'Something went wrong', body: e.message, details: details);
+  }
+  if (e is ModrinthException) {
+    return ErrorInfo(title: "Couldn't load from Modrinth", body: e.message, details: '$e');
   }
   return ErrorInfo(title: 'Something went wrong', body: 'Try again.', details: '$e');
 }

@@ -24,6 +24,11 @@ The Exaroton Server Control GUI App For Control Server Without Entering Website
 - [x] Server Config
 - [x] Personalization
 - [x] Pool Credit Management (Via Webview System)
+- [x] Mods and plugins from Modrinth (Add-ons tab: search, install with dependencies, update, remove)
+- [x] Server alerts (crashed, online, stopped; Android also checks in the background every 15 minutes)
+- [x] World backups (Files > Back up worlds / Restore a backup, as a zip)
+- [x] Console player-name completion (Tab, or chips on phones) and quick commands saved from the console
+- [x] Android home-screen widget (status, players, credits, Start and Stop)
 
 ## 1.6 (Flutter)
 

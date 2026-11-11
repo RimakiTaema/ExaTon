@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/exaroton/models.dart';
 import '../../ui/components.dart';
 import '../../ui/tokens.dart';
+import '../addons/addons.dart';
+import '../addons/addons_tab.dart';
 import '../config/config_tab.dart';
 import '../console/console_view.dart';
 import '../console/live_session.dart';
@@ -27,6 +29,9 @@ enum DetailTab {
   console('Console', 'console'),
   players('Players', 'player'),
   files('Files', 'file'),
+
+  /// Mods or plugins from Modrinth. Only for software that takes them.
+  addons('Add-ons', 'file'),
   logs('Logs', null),
   config('Config', 'config'),
   pool('Pool', null);
@@ -107,7 +112,12 @@ class _ServerDetailState extends ConsumerState<ServerDetail> with TickerProvider
     final compact = size == WindowSize.compact || _paneWidth < 640;
     _syncTabs([
       for (final tab in DetailTab.values)
-        if (tab == DetailTab.access ? server.shared : (tab.permission == null || server.allows(tab.permission!))) tab,
+        if (switch (tab) {
+          DetailTab.access => server.shared,
+          DetailTab.addons => addonTargetOf(server) != null && server.allows(tab.permission!),
+          _ => tab.permission == null || server.allows(tab.permission!),
+        })
+          tab,
     ]);
 
     final nameStyle = (compact ? Theme.of(context).textTheme.headlineSmall : Theme.of(context).textTheme.headlineMedium)
@@ -222,6 +232,7 @@ class _ServerDetailState extends ConsumerState<ServerDetail> with TickerProvider
                         DetailTab.console => ConsoleView(serverId: server.id, sidePanel: size == WindowSize.expanded),
                         DetailTab.players => PlayersTab(server: server),
                         DetailTab.files => FilesTab(server: server),
+                        DetailTab.addons => AddonsTab(server: server),
                         DetailTab.logs => LogsTab(server: server),
                         DetailTab.config => ConfigTab(server: server),
                         DetailTab.pool => ServerPoolTab(server: server),

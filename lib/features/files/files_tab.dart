@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +9,8 @@ import '../../ui/theme.dart';
 import '../../ui/tokens.dart';
 import '../accounts/accounts.dart';
 import '../config/config_tab.dart';
+import '../../core/platform/save_file.dart';
+import 'backups_ui.dart';
 import '../../ui/app_icons.dart';
 
 final fileInfoProvider = FutureProvider.autoDispose.family<FileInfo, (String, String)>(
@@ -87,12 +87,12 @@ class _FilesTabState extends ConsumerState<FilesTab> {
   }
 
   Future<void> _download(FileInfo f) async {
-    final loc = await getSaveLocation(suggestedName: f.name);
-    if (loc == null) return;
+    // Read first: on phones the save dialog takes the bytes.
     await _guard(() async {
       final bytes = await _client.readFile(_id, f.path);
-      await File(loc.path).writeAsBytes(bytes);
-    }, 'Saved ${f.name}');
+      final saved = await saveFileAs(f.name, bytes: bytes);
+      if (saved != null && mounted) showMessage(context, 'Saved ${f.name}');
+    });
   }
 
   Future<void> _delete(FileInfo f) async {
@@ -172,12 +172,17 @@ class _FilesTabState extends ConsumerState<FilesTab> {
               onSelected: (v) => switch (v) {
                 'folder' => _newFolder(),
                 'file' => _newFile(),
+                'backup' => backupFlow(context, _client, widget.server),
+                'restore' => restoreFlow(context, _client, widget.server).then((_) => _refresh()),
                 _ => _upload(),
               },
               itemBuilder: (_) => const [
                 PopupMenuItem(value: 'folder', child: Text('New folder')),
                 PopupMenuItem(value: 'file', child: Text('New file')),
                 PopupMenuItem(value: 'upload', child: Text('Upload file')),
+                PopupMenuDivider(),
+                PopupMenuItem(value: 'backup', child: Text('Back up worlds')),
+                PopupMenuItem(value: 'restore', child: Text('Restore a backup')),
               ],
             ),
             IconButton(tooltip: 'Refresh', icon: const Icon(AppIcons.refresh), onPressed: _refresh),

@@ -15,6 +15,7 @@ import '../accounts/add_account_screen.dart';
 import '../accounts/migration.dart';
 import '../accounts/migration_screen.dart';
 import '../credits/alerts.dart';
+import '../servers/status_alerts.dart';
 import '../credits/estimate.dart';
 import '../debug/debug_screen.dart';
 import 'settings.dart';
@@ -228,6 +229,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ],
         ),
         const _CreditSettings(),
+        const _StatusAlerts(),
         const _QuickCommands(),
         const _Accounts(),
       ],
@@ -350,6 +352,7 @@ class _CreditSettings extends ConsumerWidget {
               onChanged: (on) async {
                 if (on) await CreditAlerts.instance.requestPermission();
                 await n.update((x) => x.copyWith(alertsEnabled: on));
+                await _reschedule(ref);
               },
             ),
             ListTile(
@@ -396,6 +399,54 @@ class _CreditSettings extends ConsumerWidget {
               },
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+Future<void> _reschedule(WidgetRef ref) async {
+  try {
+    await registerBackgroundCheck(ref.read(settingsProvider));
+  } catch (_) {}
+}
+
+/// Which server status changes notify.
+class _StatusAlerts extends ConsumerWidget {
+  const _StatusAlerts();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.tokens;
+    final on = ref.watch(settingsProvider.select((s) => s.statusAlerts));
+    final n = ref.read(settingsProvider.notifier);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader('Server alerts'),
+        CardList(
+          children: [
+            for (final e in StatusEvent.values)
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                title: Text(e.description),
+                value: on.contains(e),
+                onChanged: (v) async {
+                  if (v) await CreditAlerts.instance.requestPermission();
+                  await n.update(
+                    (s) => s.copyWith(statusAlerts: v ? {...s.statusAlerts, e} : ({...s.statusAlerts}..remove(e))),
+                  );
+                  await _reschedule(ref);
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          Platform.isAndroid
+              ? 'Checked while the app is open, and every 15 minutes in the background.'
+              : 'Checked while the app is open.',
+          style: TextStyle(color: t.onSurfaceMuted, height: 1.4),
         ),
       ],
     );

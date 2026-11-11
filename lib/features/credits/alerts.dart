@@ -7,6 +7,8 @@ import 'package:workmanager/workmanager.dart';
 import '../../core/exaroton/client.dart';
 import '../../core/storage/account_store.dart';
 import '../../core/storage/database.dart';
+import '../servers/status_alerts.dart';
+import '../widget/home_widget.dart';
 import '../settings/settings.dart';
 import 'credits.dart';
 import 'estimate.dart';
@@ -27,6 +29,27 @@ class CreditAlerts {
     channelDescription: 'When time left on credits drops under your threshold',
     importance: Importance.defaultImportance,
   );
+
+  static const _statusChannel = AndroidNotificationDetails(
+    'server_status',
+    'Server status',
+    channelDescription: 'When a server crashes, comes online or stops',
+    importance: Importance.high,
+  );
+
+  /// Notifies a server status change.
+  Future<void> notifyStatus(StatusAlert a) async {
+    await init();
+    if (!_ready) return;
+    try {
+      await _plugin.show(
+        id: 'status.${a.server.id}'.hashCode & 0x7fffffff,
+        title: a.title,
+        body: a.body,
+        notificationDetails: const NotificationDetails(android: _statusChannel),
+      );
+    } catch (_) {}
+  }
 
   Future<void> init() async {
     if (_ready) return;
@@ -113,15 +136,24 @@ class CreditAlerts {
 
 const backgroundTaskName = 'exaton.creditsCheck';
 
-Future<void> registerBackgroundCheck() async {
+/// Every 15 minutes (Android's shortest) when status alerts are on, since a
+/// crash an hour late is not much use; hourly for credit alerts alone.
+Duration backgroundFrequency(AppSettings s) =>
+    s.statusAlerts.isEmpty ? const Duration(hours: 1) : const Duration(minutes: 15);
+
+Future<void> registerBackgroundCheck(AppSettings settings) async {
   if (!Platform.isAndroid) return;
   await Workmanager().initialize(backgroundDispatcher);
+  if (!settings.needsBackgroundCheck) {
+    await Workmanager().cancelByUniqueName(backgroundTaskName);
+    return;
+  }
   await Workmanager().registerPeriodicTask(
     backgroundTaskName,
     backgroundTaskName,
-    frequency: const Duration(hours: 1),
+    frequency: backgroundFrequency(settings),
     constraints: Constraints(networkType: NetworkType.connected),
-    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
   );
 }
 
@@ -132,11 +164,22 @@ void backgroundDispatcher() {
     final db = AppDatabase.open();
     try {
       final settings = await AppSettings.load(db);
-      if (!settings.alertsEnabled) return true;
+      if (!settings.needsBackgroundCheck) return true;
       final accounts = await AccountStore().load();
       for (final a in accounts) {
         final client = ExarotonClient(a.token);
         try {
+          if (settings.statusAlerts.isNotEmpty) {
+            final list = await client.getServers();
+            for (final alert in await checkStatuses(db, a.id, list, settings.statusAlerts)) {
+              await CreditAlerts.instance.notifyStatus(alert);
+            }
+            // Keep the home-screen widget current too.
+            final followed = await widgetServerId();
+            final server = list.where((s) => s.id == followed).firstOrNull;
+            if (server != null) await pushWidget(widgetData(accountId: a.id, server: server));
+          }
+          if (!settings.alertsEnabled) continue;
           final account = await client.getAccount();
           await db.addSample(sampleOwner(a.id), account.credits);
           final pools = await client.getPools();
