@@ -25,11 +25,9 @@ Future<void> main() async {
   final db = AppDatabase.open();
   final settings = await AppSettings.load(db);
   await CreditAlerts.instance.init();
-  if (settings.alertsEnabled) {
-    try {
-      await registerBackgroundCheck();
-    } catch (_) {}
-  }
+  try {
+    await registerBackgroundCheck(settings);
+  } catch (_) {}
   runApp(
     ProviderScope(
       // Errors are shown with a retry button; no silent automatic retries.

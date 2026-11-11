@@ -5,6 +5,7 @@ import '../../core/storage/database.dart';
 import '../../ui/theme.dart';
 import '../../ui/tokens.dart';
 import '../credits/estimate.dart';
+import '../servers/status_alerts.dart';
 
 const defaultQuickCommands = ['list', 'save-all', 'whitelist list'];
 
@@ -18,6 +19,7 @@ class AppSettings {
     this.creditFloor,
     this.quickCommands = defaultQuickCommands,
     this.mutedPools = const {},
+    this.statusAlerts = const {StatusEvent.crashed},
   });
 
   final ThemeSettings theme;
@@ -31,6 +33,12 @@ class AppSettings {
   /// threshold stay in [alertsEnabled] and [alertThresholdDays].
   final Set<String> mutedPools;
 
+  /// Server status changes that send a notification.
+  final Set<StatusEvent> statusAlerts;
+
+  /// Whether anything needs the background check.
+  bool get needsBackgroundCheck => alertsEnabled || statusAlerts.isNotEmpty;
+
   bool alertsOnFor(String poolId) => alertsEnabled && !mutedPools.contains(poolId);
 
   AppSettings copyWith({
@@ -42,6 +50,7 @@ class AppSettings {
     bool clearCreditFloor = false,
     List<String>? quickCommands,
     Set<String>? mutedPools,
+    Set<StatusEvent>? statusAlerts,
   }) => AppSettings(
     theme: theme ?? this.theme,
     estimateMethod: estimateMethod ?? this.estimateMethod,
@@ -50,6 +59,7 @@ class AppSettings {
     creditFloor: clearCreditFloor ? null : (creditFloor ?? this.creditFloor),
     quickCommands: quickCommands ?? this.quickCommands,
     mutedPools: mutedPools ?? this.mutedPools,
+    statusAlerts: statusAlerts ?? this.statusAlerts,
   );
 
   Map<String, dynamic> toJson() => {
@@ -63,6 +73,7 @@ class AppSettings {
     'creditFloor': creditFloor,
     'quickCommands': quickCommands,
     'mutedPools': mutedPools.toList(),
+    'statusAlerts': [for (final e in statusAlerts) e.name],
   };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) {
@@ -89,6 +100,12 @@ class AppSettings {
           ? (j['quickCommands'] as List).whereType<String>().toList()
           : defaultQuickCommands,
       mutedPools: j['mutedPools'] is List ? (j['mutedPools'] as List).whereType<String>().toSet() : const {},
+      statusAlerts: j['statusAlerts'] is List
+          ? {
+              for (final n in (j['statusAlerts'] as List).whereType<String>())
+                ...StatusEvent.values.where((e) => e.name == n),
+            }
+          : const {StatusEvent.crashed},
     );
   }
 
