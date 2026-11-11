@@ -17,18 +17,71 @@ final softwareDetailsProvider = FutureProvider.autoDispose.family<SoftwareDetail
   (ref, key) => requireClient(ref).getServerSoftware(key.$1, key.$2),
 );
 
-/// A pick from the software list: one exact version, or the latest version
-/// of a software type.
+/// A pick from the software list: one exact version, the latest version of
+/// a software type, or custom software the user uploads on exaroton.com.
 @immutable
 class SoftwareChoice {
-  const SoftwareChoice.version(Software this.software) : latestType = null;
-  const SoftwareChoice.latest(String this.latestType) : software = null;
+  const SoftwareChoice.version(Software this.software) : latestType = null, custom = false;
+  const SoftwareChoice.latest(String this.latestType) : software = null, custom = false;
+  const SoftwareChoice.custom() : software = null, latestType = null, custom = true;
 
   final Software? software;
   final String? latestType;
 
-  String get label => software?.toString() ?? 'Latest $latestType';
+  /// The API cannot install custom software; it is uploaded on exaroton.com.
+  final bool custom;
+
+  String get label => custom ? 'Custom software' : software?.toString() ?? 'Latest $latestType';
 }
+
+/// exaroton's server list. The panel picks a server per session, so there
+/// is no link to one server's Software page.
+final exarotonServersUrl = Uri.parse('https://exaroton.com/servers/');
+
+/// exaroton's create-server page.
+final exarotonCreateUrl = Uri.parse('https://exaroton.com/create/');
+
+/// Whether the picker's Custom row matches a search [query].
+bool customMatches(String query) {
+  final q = query.trim().toLowerCase();
+  return q.isEmpty || 'custom software upload jar'.contains(q);
+}
+
+/// Explains that custom software is uploaded on exaroton.com and offers to
+/// open it. [serverName] is the server to change; null when creating one.
+Future<void> showCustomSoftwareDialog(BuildContext context, {String? serverName}) => showDialog<void>(
+  context: context,
+  builder: (context) {
+    final steps = serverName == null
+        ? 'Create the server on exaroton.com. Then open its Software page, drop your server jar on it, '
+              'and choose the Minecraft version and the file to run.'
+        : 'On exaroton.com, choose $serverName and open Software. Drop your server jar on the page, '
+              'then choose the Minecraft version and the file to run.';
+    return AlertDialog(
+      title: const Text('Custom software'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: Text(
+          "exaroton's API cannot install custom software, so it's uploaded on the website.\n\n$steps\n\n"
+          'Custom software is not available during the free trial.',
+          style: const TextStyle(height: 1.4),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        FilledButton.icon(
+          onPressed: () {
+            Navigator.pop(context);
+            final url = serverName == null ? exarotonCreateUrl : exarotonServersUrl;
+            launchUrl(url, mode: LaunchMode.externalApplication);
+          },
+          icon: const Icon(AppIcons.openExternal, size: 18),
+          label: const Text('Open exaroton.com'),
+        ),
+      ],
+    );
+  },
+);
 
 /// The software types in [list], in first-seen order.
 List<String> softwareTypes(List<Software> list) => {
@@ -92,6 +145,8 @@ class _SoftwarePickerPageState extends ConsumerState<SoftwarePickerPage> {
                       if ((_type == null || _type == type) && (q.isEmpty || type.toLowerCase().contains(q))) type,
                   ]
                 : const <String>[];
+            // The type filter narrows to API software, so Custom shows only under All.
+            final custom = _type == null && customMatches(_query) ? 1 : 0;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -129,14 +184,14 @@ class _SoftwarePickerPageState extends ConsumerState<SoftwarePickerPage> {
                   ),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: latest.isEmpty && shown.isEmpty
+                  child: latest.isEmpty && shown.isEmpty && custom == 0
                       ? EmptyState(
                           icon: AppIcons.noResults,
                           title: value.isEmpty ? 'No software available' : 'No software matches',
                         )
                       : ListView.builder(
                           padding: const EdgeInsets.only(bottom: 24),
-                          itemCount: latest.length + shown.length,
+                          itemCount: latest.length + custom + shown.length,
                           itemBuilder: (context, i) {
                             if (i < latest.length) {
                               return ListTile(
@@ -149,7 +204,19 @@ class _SoftwarePickerPageState extends ConsumerState<SoftwarePickerPage> {
                                 onTap: () => Navigator.pop(context, SoftwareChoice.latest(latest[i])),
                               );
                             }
-                            final s = shown[i - latest.length];
+                            if (i < latest.length + custom) {
+                              return ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: gutter),
+                                title: const Text(
+                                  'Custom software',
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+                                ),
+                                subtitle: const Text('Upload your own server jar on exaroton.com'),
+                                trailing: Icon(AppIcons.openExternal, color: t.onSurfaceMuted),
+                                onTap: () => Navigator.pop(context, const SoftwareChoice.custom()),
+                              );
+                            }
+                            final s = shown[i - latest.length - custom];
                             final current = s.id == widget.currentId;
                             return ListTile(
                               contentPadding: const EdgeInsets.symmetric(horizontal: gutter),
@@ -346,7 +413,12 @@ class _CreateServerDialogState extends ConsumerState<_CreateServerDialog> {
                     ? null
                     : () async {
                         final c = await pickSoftware(context, allowLatest: true);
-                        if (c != null && mounted) setState(() => _software = c);
+                        if (c == null || !context.mounted) return;
+                        if (c.custom) {
+                          await showCustomSoftwareDialog(context);
+                          return;
+                        }
+                        setState(() => _software = c);
                       },
                 style: OutlinedButton.styleFrom(alignment: Alignment.centerLeft),
                 child: Row(

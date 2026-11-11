@@ -370,6 +370,25 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('change software: Custom explains the website upload and installs nothing', (tester) async {
+    await pumpApp(tester);
+    await tester.tap(find.text('Beta'));
+    await settle(tester);
+    await openTab(tester, 'Overview');
+    await tester.scrollUntilVisible(find.text('Change software'), 200, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('Change software'));
+    await settle(tester);
+    await tester.tap(find.text('Custom software'));
+    await settle(tester);
+    expect(find.textContaining('choose Beta and open Software'), findsOneWidget);
+    expect(find.text('Open exaroton.com'), findsOneWidget);
+    await tester.tap(find.text('Cancel').last);
+    await settle(tester);
+    expect(find.text('Open exaroton.com'), findsNothing);
+    expect(mutating(), isEmpty);
+    await unmount(tester);
+  });
+
   testWidgets('recent servers: the phone lists opened servers under the Recent filter', (tester) async {
     await pumpApp(tester);
     expect(find.text('Recent 0'), findsOneWidget);
