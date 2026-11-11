@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/settings/updates.dart';
 import '../core/exaroton/models.dart';
 import '../features/accounts/account_chip.dart';
 import '../features/accounts/accounts.dart';
@@ -102,6 +103,10 @@ class _AppShellState extends ConsumerState<AppShell> {
       if (o != null && id != null) {
         CreditAlerts.instance.evaluate(o, ref.read(settingsProvider), ref.read(databaseProvider), id);
       }
+    });
+    ref.listen(updateCheckProvider, (_, next) {
+      final r = next.value;
+      if (r != null) showUpdateNotice(context, r);
     });
     ref.listen(homeWidgetDataProvider, (prev, next) {
       if (next != null && !mapEquals(prev, next)) pushWidget(next);

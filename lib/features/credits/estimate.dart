@@ -14,6 +14,11 @@ const double storageCreditsPerServerMonth = 10.0;
 /// The storage price per server per hour, with a month counted as 30 days.
 const double storageCreditsPerServerHour = storageCreditsPerServerMonth / (30 * 24);
 
+/// What one server costs in a 30-day month when it runs [hoursPerDay] a day:
+/// RAM while running, plus storage.
+double monthlyCredits({required int ramGb, required double hoursPerDay}) =>
+    ramGb * creditsPerGbHour * hoursPerDay * 30 + storageCreditsPerServerMonth;
+
 /// Window and minimum span for the Recent usage method.
 const recentUsageWindow = Duration(hours: 6);
 const recentUsageMinSpan = Duration(minutes: 30);

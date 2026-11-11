@@ -52,6 +52,12 @@ void main() {
       expect(e.creditsPerHour, closeTo(4 + 30 / 720, 1e-12));
     });
 
+    test('monthly cost: RAM while running plus storage', () {
+      expect(monthlyCredits(ramGb: 4, hoursPerDay: 4), 4 * 4 * 30 + 10);
+      expect(monthlyCredits(ramGb: 8, hoursPerDay: 0), 10);
+      expect(monthlyCredits(ramGb: 2, hoursPerDay: 24), 2 * 24 * 30 + 10);
+    });
+
     test('unknown RAM returns null so the caller falls back', () {
       expect(
         estimateFromRunning(credits: 100, payer: null, running: const [RunningCost(serverId: 'a', ramGb: null)]),

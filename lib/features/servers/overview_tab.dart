@@ -10,6 +10,7 @@ import '../../ui/tokens.dart';
 import '../accounts/accounts.dart';
 import '../console/live_session.dart';
 import '../credits/credits.dart';
+import '../credits/estimate.dart';
 import '../charts/time_series_chart.dart';
 import 'logs_tab.dart';
 import 'server_actions.dart';
@@ -113,6 +114,8 @@ class OverviewTab extends ConsumerWidget {
         if (canEditOptions) ...[
           const SizedBox(height: 16),
           _RamCard(server: server),
+          const SizedBox(height: 16),
+          _CostCard(server: server),
           const SizedBox(height: 16),
           _MotdCard(server: server),
         ],
@@ -446,6 +449,66 @@ class _MotdCardState extends ConsumerState<_MotdCard> {
         AsyncError(:final error) => Text('MOTD: $error', style: TextStyle(color: t.onSurfaceMuted)),
         _ => const SizedBox(height: 60, child: Loading()),
       },
+    );
+  }
+}
+
+/// Monthly cost at a chosen number of hours a day, from the server's RAM and
+/// the storage price. Not saved: it is a what-if.
+class _CostCard extends ConsumerStatefulWidget {
+  const _CostCard({required this.server});
+  final Server server;
+
+  @override
+  ConsumerState<_CostCard> createState() => _CostCardState();
+}
+
+class _CostCardState extends ConsumerState<_CostCard> {
+  double _hours = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final id = widget.server.id;
+    final ram = ref.watch(ramCacheProvider).value?[id] ?? ref.watch(_ramProvider(id)).value;
+    final label = TextStyle(color: t.onSurfaceMuted, fontWeight: FontWeight.w600, fontSize: 15);
+    final h = _hours.round();
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Monthly cost', style: label),
+          const SizedBox(height: 4),
+          if (ram == null)
+            Text('Waiting for the RAM size...', style: TextStyle(color: t.onSurfaceMuted))
+          else ...[
+            Text(
+              '~${formatCredits(monthlyCredits(ramGb: ram, hoursPerDay: h.toDouble()))} credits a month',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Running $h ${h == 1 ? 'hour' : 'hours'} a day: '
+              '${formatCredits(ram * creditsPerGbHour * h * 30)} for $ram GB of RAM '
+              '+ ${storageCreditsPerServerMonth.toStringAsFixed(0)} storage',
+              style: TextStyle(color: t.onSurfaceMuted, height: 1.4),
+            ),
+            Slider(
+              value: _hours,
+              min: 0,
+              max: 24,
+              divisions: 24,
+              label: '$h h / day',
+              semanticFormatterCallback: (v) => '${v.round()} hours a day',
+              onChanged: (v) => setState(() => _hours = v),
+            ),
+            Text(
+              'A month is counted as 30 days. Storage is charged even while the server is offline.',
+              style: TextStyle(color: t.onSurfaceMuted, fontSize: 13),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

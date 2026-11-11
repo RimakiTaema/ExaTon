@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/app_info.dart';
@@ -8,6 +9,7 @@ import '../../ui/app_icons.dart';
 import '../../ui/components.dart';
 import '../../ui/tokens.dart';
 import '../debug/debug_screen.dart';
+import 'updates.dart';
 
 final _repo = Uri.parse('https://github.com/RimakiTaema/ExaTon');
 final _releases = Uri.parse('https://github.com/RimakiTaema/ExaTon/releases');
@@ -24,14 +26,14 @@ bool _debugUnlocked = false;
 
 /// Version, project links and licences. Debug is hidden behind tapping the
 /// build number [debugUnlockTaps] times.
-class AboutScreen extends StatefulWidget {
+class AboutScreen extends ConsumerStatefulWidget {
   const AboutScreen({super.key});
 
   @override
-  State<AboutScreen> createState() => _AboutScreenState();
+  ConsumerState<AboutScreen> createState() => _AboutScreenState();
 }
 
-class _AboutScreenState extends State<AboutScreen> {
+class _AboutScreenState extends ConsumerState<AboutScreen> {
   int _taps = 0;
 
   void _openDebug() => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DebugScreen()));
@@ -112,6 +114,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 info('Version', appVersionName),
                 info('Build', '$appVersionCode', onTap: _tapBuild),
                 info('Platform', Platform.operatingSystem),
+                _UpdateRow(),
                 if (_debugUnlocked)
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
@@ -150,6 +153,30 @@ class _AboutScreenState extends State<AboutScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Whether a newer release is out. Tap to open it, or to check again.
+class _UpdateRow extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.tokens;
+    final check = ref.watch(updateCheckProvider);
+    final (String value, Color color, VoidCallback? onTap) = switch (check) {
+      AsyncData(value: final r?) => ('${r.version} available', t.primary, () => openRelease(r)),
+      AsyncData() => ('Up to date', t.onSurfaceMuted, () => ref.invalidate(updateCheckProvider)),
+      AsyncError() => ('Could not check', t.warning, () => ref.invalidate(updateCheckProvider)),
+      _ => ('Checking...', t.onSurfaceMuted, null),
+    };
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+      title: const Text('Updates'),
+      trailing: Text(
+        value,
+        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+      ),
+      onTap: onTap,
     );
   }
 }
