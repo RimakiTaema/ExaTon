@@ -587,7 +587,7 @@ class _Accounts extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'ExaTon 1.6 - not affiliated with exaroton',
+          'ExaTon 1.7.1 - not affiliated with exaroton',
           textAlign: TextAlign.center,
           style: TextStyle(color: t.onSurfaceMuted),
         ),

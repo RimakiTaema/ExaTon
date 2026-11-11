@@ -316,7 +316,7 @@ class _UpgradeMark extends StatelessWidget {
                 ],
               ),
               child: Text(
-                '1.6',
+                '1.7',
                 style: TextStyle(color: t.onPrimary, fontWeight: FontWeight.w800, fontSize: 18),
               ),
             ),
