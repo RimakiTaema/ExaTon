@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:exaton/app/app_info.dart';
 import 'package:exaton/core/storage/account_store.dart';
 import 'package:exaton/core/storage/database.dart';
 import 'package:exaton/features/accounts/accounts.dart';
+import 'package:exaton/features/addons/addons.dart';
 import 'package:exaton/features/charts/time_series_chart.dart';
 import 'package:exaton/features/console/live_session.dart';
 import 'package:exaton/features/debug/debug_screen.dart';
@@ -20,6 +22,7 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'support/fake_api.dart';
+import 'support/fake_modrinth.dart';
 
 class _Store extends AccountStore {
   @override
@@ -115,6 +118,7 @@ Map<String, (int, Object?)> routes() => {
 };
 
 late FakeAdapter api;
+late FakeModrinth modrinthApi;
 late AppDatabase db;
 final channels = <FakeChannel>[];
 
@@ -129,6 +133,7 @@ Future<void> pumpApp(
   WidgetTester tester, {
   Size size = const Size(390, 844),
   Map<String, (int, Object?)>? extra,
+  Map<String, (int, Object?)> modrinth = const {},
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -136,6 +141,7 @@ Future<void> pumpApp(
   db = AppDatabase(NativeDatabase.memory());
   addTearDown(db.close);
   api = FakeAdapter({...routes(), ...?extra});
+  modrinthApi = FakeModrinth(modrinth);
   channels.clear();
   await tester.pumpWidget(
     ProviderScope(
@@ -151,6 +157,7 @@ Future<void> pumpApp(
           return c;
         }),
         probeDioProvider.overrideWithValue(() => fakeClient(api).dio),
+        modrinthClientProvider.overrideWithValue(fakeModrinth(modrinthApi)),
       ],
       child: const ExaTonApp(),
     ),
@@ -386,6 +393,86 @@ void main() {
     await settle(tester);
     expect(find.text('Open exaroton.com'), findsNothing);
     expect(mutating(), isEmpty);
+    await unmount(tester);
+  });
+
+  testWidgets('add-ons: search Modrinth and install a plugin into /plugins', (tester) async {
+    final jar = Uint8List.fromList([1, 2, 3]);
+    await pumpApp(
+      tester,
+      extra: {
+        'GET /servers/$beta/files/info/plugins/': (
+          200,
+          ok({
+            'path': '/plugins',
+            'name': 'plugins',
+            'isDirectory': true,
+            // As it reads after the install.
+            'children': [
+              {
+                'path': '/plugins/LuckPerms.jar',
+                'name': 'LuckPerms.jar',
+                'size': 3,
+                'isReadable': true,
+                'isWritable': true,
+              },
+            ],
+          }),
+        ),
+        'PUT /servers/$beta/files/data/plugins/LuckPerms.jar/': (200, ok(null)),
+      },
+      modrinth: {
+        'GET /search': (
+          200,
+          {
+            'hits': [
+              {
+                'project_id': 'lp',
+                'slug': 'luckperms',
+                'title': 'LuckPerms',
+                'description': 'Permissions',
+                'downloads': 12000,
+              },
+            ],
+            'total_hits': 1,
+          },
+        ),
+        'GET /project/lp/version': (
+          200,
+          [
+            {
+              'id': 'v5',
+              'project_id': 'lp',
+              'name': 'LuckPerms 5',
+              'version_number': '5.4',
+              'files': [
+                {
+                  'url': 'https://cdn.modrinth.com/data/lp/LuckPerms.jar',
+                  'filename': 'LuckPerms.jar',
+                  'primary': true,
+                  'hashes': {'sha1': 'abc'},
+                },
+              ],
+              'dependencies': <Object>[],
+            },
+          ],
+        ),
+        'GET https://cdn.modrinth.com/data/lp/LuckPerms.jar': (200, jar),
+      },
+    );
+    await tester.tap(find.text('Beta'));
+    await settle(tester);
+    await openTab(tester, 'Add-ons');
+    expect(find.text('LuckPerms'), findsOneWidget);
+    final search = modrinthApi.requests.firstWhere((r) => r.uri.path.endsWith('/search'));
+    expect(search.uri.queryParameters['facets'], contains('categories:paper'));
+    await tester.tap(find.byTooltip('Install LuckPerms'));
+    await settle(tester);
+    expect(find.text('Install LuckPerms?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Install'));
+    await settle(tester);
+    expect(mutating(), contains('PUT /v1/servers/$beta/files/data/plugins/LuckPerms.jar/'));
+    expect(find.byTooltip('Installed'), findsOneWidget);
     await unmount(tester);
   });
 
